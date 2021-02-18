@@ -1,4 +1,0 @@
-Fred gosta 33 =
-yeS=3;
-yes = 3 ;
-yes= 3;

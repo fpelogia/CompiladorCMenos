@@ -6,6 +6,7 @@
 //#define YYDEBUG 1
 static char * nomeSalvo; // para uso em atribuições
 static int numLinhaSalva;
+static Tipo tipoSalvo; //para declaracoes de variavel
 static NoArvore* arvoreSalva; /* armazena árvore para retornar depois */
 static int yylex();
 int yyerror(char *message);
@@ -19,27 +20,105 @@ int yyerror(char *message);
 
 %% // CFG (Gramática Livre de Contexto) da Linguagem C menos
 programa    : decl_lista
+                { arvoreSalva = $1;}
             ;
-decl_lista  : decl_lista decl   
-            | decl
+decl_lista  : decl_lista decl
+                { YYSTYPE temp = $1;
+                // adiciona os nós como irmãos
+                // pela recursividade a esquerda
+                  if(temp != NULL){
+                    while(temp->irmao != NULL){
+                        temp = temp->irmao;
+                    }
+                    temp-> irmao = $2;
+                    $$ = $1;
+                  }else{
+                    $$ = $3;
+                  }
+                }   
+            | decl {$$ = $1;}
             ;
-decl        : var_decl
+decl        : var_decl {$$ = $1}
             | fun_decl
             ;
-var_decl    : tipo_esp ID PVIRG
-            | tipo_esp ID ABRECOL NUM FECHACOL PVIRG
+var_decl    : tipo_esp { if($1==INT)
+                            tipoSalvo = Integer;
+                         else if($1==VOID)
+                            tipoSalvo = Void;
+                         else
+                            erro = true;
+                       }
+              ID { strcpy(nomeSalvo, tokenString);
+                   numLinhaSalva = numlinha;
+                 }
+              PVIRG {   $$ = novoNoDecl(D_var);
+                        $$->atrib.nome = nomeSalvo;
+                        $$->numlinha = numlinhaSalva;
+                        $$->tipo = tipoSalvo;
+                    }
+            | tipo_esp { if($1==INT)
+                            tipoSalvo = Integer;
+                         else if($1==VOID)
+                            tipoSalvo = Void;
+                         else
+                            erro = true;
+                       }
+              ID { strcpy(nomeSalvo, tokenString);
+                   numLinhaSalva = numlinha;
+                 }
+              ABRECOL NUM FECHACOL PVIRG
+              /* PENSAR EM COMO LIDAR COM O [NUM]*/
             ;
-tipo_esp    : INT 
-            | VOID
+tipo_esp    : INT { $$ = $1; } 
+            | VOID { $$ = $1; }
             ;
-fun_decl    : tipo_esp ID ABREPAR params FECHAPAR bloco_decl
+fun_decl    : tipo_esp { if($1==INT)
+                            tipoSalvo = Integer;
+                         else if($1==VOID)
+                            tipoSalvo = Void;
+                         else
+                            erro = true;
+                       }
+              ID { strcpy(nomeSalvo, tokenString);
+                   numLinhaSalva = numlinha;
+                 }
+                 
+              ABREPAR params FECHAPAR bloco_decl
+              {
+                $$ = novoNoDecl(D_func);
+                $$->filho[0] = $6;
+                $$->filho[1] = $8;
+                $$->atrib.nome = nomeSalvo;
+                $$->numlinha = numLinhaSalva;
+                $$->tipo = tipoSalvo;
+              }
+
             ;
-params      : param_lista VIRG param 
-            | param
+params      : param_lista {$$ = $1;}
+            | VOID {$$ = $1;}
             ;
-param       : tipo_esp ID | tipo_esp ID ABRECOL FECHACOL
+param_lista : param_lista VIRG param {  
+                                       $$ = novoNoStmt(S_Params);
+                                       $$->filho[0] = $1;
+                                       $$->filho[1] = $3;
+                                       /* Isso não me cheira bem*/
+                                     }
+            | param {$$ = $1;}
             ;
-bloco_decl  : '{' local_decl var_decl 
+param       : tipo_esp { if($1==INT)
+                            tipoSalvo = Integer;
+                         else if($1==VOID)
+                            tipoSalvo = Void;
+                         else
+                            erro = true;
+                       }
+              ID { strcpy(nomeSalvo, tokenString);
+                   numLinhaSalva = numlinha;
+                 }
+
+            | tipo_esp ID ABRECOL FECHACOL
+            ;
+bloco_decl  : ABRECH local_decl var_decl 
             | vazio
 local_decl  : local_decl var_decl
             | vazio
@@ -107,12 +186,17 @@ arg_lista   : arg_lista VIRG exp
 
 %%
 
-int yyerror(char * message)
-{ fprintf(listing,"Syntax error at line %d: %s\n",lineno,message);
-  fprintf(listing,"Current token: ");
-  printToken(yychar,tokenString);
-  Error = TRUE;
-  return 0;
+int yyerror(char * message){
+    //pensar depois se nós precisaremos de um arquivo "listing"...
+    fprintf(stderr,"Erro sintático na linha %d!\n mensagem: %s\n",numlinha,message);
+    fprintf(stderr,"Token atual: ");
+    if(rt == ID || rt == NUM){
+        fprintf(stderr,"%s, val= %s\n", nome_token(yychar),yytext);
+    }else{
+        fprintf(stderr,"%s\n",nome_token(yychar), yytext);
+    }
+    erro = true;
+    return 0;
 }
 
 /* yylex calls getToken to make Yacc/Bison output

@@ -1,14 +1,69 @@
 #include "definitions.h"
 
+char tokenString[MAX_TAM_TOKEN + 1];
 
+/*
 char* nome_token[] ={"FIMARQ", "ERRO",
     "ELSE", "IF", "INT", "RETURN", "VOID", "WHILE",
     "ID","NUM",
     "IGUAL", "IGUALIGUAL", "DIF", "MENOR", "MAIOR", "MENIGUAL", "MAIIGUAL", "MAIS", "MENOS",
     "VEZES", "DIV", "ABREPAR", "FECHAPAR", "PVIRG", "VIRG", "ABRECOL", "FECHACOL", "ABRECH", "FECHACH", "COMENT", "ENTER"
 };
+*/
 
-/*char* nome_token(Token t){
+
+// Cria e retorna um novo Nó do tipo "Declaração"
+noArvore * novoNoDecl(TipoDecl tipo)
+{ noArvore * no = (noArvore *) malloc(sizeof(noArvore));
+  int i;
+  if (no==NULL)
+    fprintf(stderr,"Out of memory error at line %d\n",numlinha);
+  else {
+    for (i=0;i<MAXFILHOS;i++) no->filho[i] = NULL;
+    no->irmao = NULL;
+    no->tipo_de_no = TDecl;
+    no->tipo.stmt = tipo;
+    no->numlinha = numlinha;
+  }
+  return no;
+}
+
+
+// Cria e retorna um novo Nó do tipo "Statement"
+noArvore * novoNoStmt(TipoStmt tipo)
+{ noArvore * t = (noArvore *) malloc(sizeof(noArvore));
+  int i;
+  if (t==NULL)
+    fprintf(stderr,"Out of memory error at line %d\n",numlinha);
+  else {
+    for (i=0;i<MAXFILHOS;i++) t->filho[i] = NULL;
+    t->irmao = NULL;
+    t->tipo_de_no = TStmt;
+    t->tipo.stmt = tipo;
+    t->numlinha = numlinha;
+  }
+  return t;
+}
+
+// Cria e retorna um novo Nó do tipo "exp"
+noArvore * novoNoExp(ExpKind tipo)
+{ noArvore * t = (noArvore *) malloc(sizeof(noArvore));
+  int i;
+  if (t==NULL)
+    fprintf(stderr,"Out of memory error at line %d\n",numlinha);
+  else {
+    for (i=0;i<MAXFILHOS;i++) t->filho[i] = NULL;
+    t->irmao = NULL;
+    t->tipo_de_no = ExpK;
+    t->tipo.exp = tipo;
+    t->numlinha = numlinha;
+    t->type = Void;
+  }
+  return t;
+}
+
+
+char* nome_token(Token t){
     char *nome;
     nome = malloc(MAX_TOKEN_NAME*sizeof(char));
     switch(t){
@@ -106,9 +161,9 @@ char* nome_token[] ={"FIMARQ", "ERRO",
             strcpy(nome,"ENTER");
             break;
         default:
-            strcpy(nome, "OUTRO-FALTA-ESCREVER");
+            strcpy(nome, "OUTRO");
             break;
     }
     return nome;
 }
-*/
+

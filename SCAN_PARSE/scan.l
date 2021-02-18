@@ -11,7 +11,7 @@ ENTER \n
           do
           { c = input();
             if (c == EOF) break;
-            //if (c == '\n') numlinha++;
+            if (c == '\n') numlinha++;
             if(c == '*'){
                 ast = 1;
             }
@@ -26,7 +26,7 @@ ENTER \n
 {LETRA}({LETRA}|{DIGITO})* {return ID;}
 {DIGITO}+ {  return NUM;}
 {ESPACO} {}
-{ENTER} { yylineno++;return ENTER;}
+{ENTER} { yylineno++;}
 "+" { return MAIS;}
 "-" { return MENOS;}
 "<" { return MENIGUAL; }
@@ -47,9 +47,15 @@ ENTER \n
 
 <<EOF>> return FIMARQ;
 %%
-Token retornaToken(FILE* arq)
+Token retornaToken()
 {
-    yyin = arq;
+    static bool primeira_vez = TRUE;
+    if (primeiraVez){
+        yyin = arq_cod_fonte; // manda ler do arquivo com o código fonte
+        primeira_vez = FALSE;
+    }
+
+    strcpy(tokenString, yytext); // guarda conteúdo da string lida
     yylex();
 }
 
