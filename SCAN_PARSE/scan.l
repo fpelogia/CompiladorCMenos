@@ -47,15 +47,18 @@ ENTER \n
 ""  { return VAZIO;}
 <<EOF>> return FIMARQ;
 %%
-Token retornaToken()
+Token retornaToken(void)
 {
-    static bool primeira_vez = TRUE;
-    if (primeiraVez){
+    static bool primeira_vez = true;
+    Token t;
+    if (primeira_vez){
         yyin = arq_cod_fonte; // manda ler do arquivo com o código fonte
-        primeira_vez = FALSE;
+        yyout = stdout;
+        numlinha++;
+        primeira_vez = false;
     }
-
+    t = yylex();
     strcpy(tokenString, yytext); // guarda conteúdo da string lida
-    yylex();
+    return t;
 }
 

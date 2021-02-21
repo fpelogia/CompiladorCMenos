@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 
 #define MAX_TAM_TOKEN 100
@@ -26,22 +27,14 @@ extern int numlinha;
 extern FILE* arq_cod_fonte; // arquivo com o código fonte a ser compilado
 extern char tokenString[MAX_TAM_TOKEN + 1]; // armazena string do token reconhecido pelo scanner
 
-// Função que retorna o nome do token (para impressão na tela)
-char* nome_token(Token token);
-// Função definida com ajuda da ferramenta flex (lex)
-Token retornaToken();
-// Função definida com ajuda da ferramenta bison (yacc)
-NoArvore* parse(void);
 
-Tipo salvaTipoEsp(Token t);
-
-typedef int TokenType; // yacc define automaticamente os valores inteiros dos Tokens
+typedef int Token; // yacc define automaticamente os valores inteiros dos Tokens
 
 //==========  (Definição das estruturas de Árvore Sintática)  ==============
 
 typedef enum {TDecl,TExp,TStmt} TipoNo;
 typedef enum {D_var, D_func} TipoDecl;
-typedef enum {S_If,S_While,S_Else,S_Return,S_Params} TipoStmt;
+typedef enum {S_If,S_While,S_Params} TipoStmt;
 typedef enum {E_Op,E_Num,E_Id} TipoExp;
 typedef enum {Void,Integer} Tipo; // Usado para verificação de tipo
 
@@ -53,12 +46,27 @@ typedef struct noArvore{
     int numlinha;
     TipoNo tipo_de_no;
     union { TipoDecl decl; TipoStmt stmt; TipoExp exp;} tipo; //talvez melhorar o nome
-    union { TokenType op;
+    union { Token op;
             int val;
             bool eh_vetor;
             char * nome; } atrib;
-    Tipo tipo; // para checar tipos em expressões
+    Tipo tipo_c; // para checar tipos em expressões
 } NoArvore;
+
+// Função que retorna o nome do token (para impressão na tela)
+char* nome_token(Token token);
+// Função definida com ajuda da ferramenta flex (lex)
+Token retornaToken();
+// Função definida com ajuda da ferramenta bison (yacc)
+NoArvore* parse(void);
+
+void imprimeArvore( NoArvore * arv );
+
+NoArvore * novoNoDecl(TipoDecl tipo);
+
+NoArvore * novoNoStmt(TipoStmt tipo);
+
+NoArvore * novoNoExp(TipoExp tipo);
 
 
 

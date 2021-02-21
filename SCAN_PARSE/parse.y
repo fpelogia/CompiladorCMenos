@@ -1,8 +1,8 @@
 %{
 #define YYPARSER // Diferenciar inclusão do definitions.h
-#include <definitions.h>
+#include "definitions.h"
 #define YYSTYPE NoArvore *
-//#define YYDEBUG 1
+#define YYDEBUG 1
 static char * nomeSalvo; // para uso em atribuições
 static int numLinhaSalva;
 static NoArvore* arvoreSalva; /* armazena árvore para retornar depois */
@@ -14,7 +14,7 @@ int yyerror(char *message);
 %token IF ELSE WHILE RETURN INT VOID
 %token ID NUM
 %token IGUAL IGUALIGUAL DIF MENOR MAIOR MENIGUAL MAIIGUAL MAIS MENOS VEZES DIV ABREPAR FECHAPAR PVIRG VIRG ABRECOL FECHACOL ABRECH FECHACH COMENT ENTER
-%token ERROR VAZIO
+%token ERRO VAZIO FIMARQ ESPACO
 
 %% // CFG (Gramática Livre de Contexto) da Linguagem C menos
 programa    : decl_lista
@@ -44,7 +44,7 @@ var_decl    : tipo_esp ID { strcpy(nomeSalvo, tokenString);
               PVIRG {   $$ = novoNoDecl(D_var);
                         $$->atrib.nome = nomeSalvo;
                         $$->numlinha = numLinhaSalva;
-                        $$->tipo = $1;
+                        $$->tipo_c = $1->tipo_c;
                     }
             | tipo_esp ID { strcpy(nomeSalvo, tokenString);
                    numLinhaSalva = numlinha;
@@ -54,15 +54,15 @@ var_decl    : tipo_esp ID { strcpy(nomeSalvo, tokenString);
                               indice->atrib.val = atoi(tokenString);
                               $$ = novoNoDecl(D_var);
                               $$->filho[0] = indice;
-                              $$->tipo = $1;
+                              $$->tipo_c = $1->tipo_c;
                               $$->atrib.nome = nomeSalvo;
                             }
             ;
-tipo_esp    : INT { Tipo t = Integer; 
-                    $$ = t; 
+tipo_esp    : INT { $$ = novoNoExp(E_Id); // apenas para passar o Tipo
+                    $$->tipo_c = Integer; 
                   } 
-            | VOID { Tipo t = Void;
-                     $$ = t; 
+            | VOID { $$ = novoNoExp(E_Id); // apenas para passar o Tipo
+                     $$->tipo_c = Void; 
                    }
             ;
 fun_decl    : tipo_esp ID { strcpy(nomeSalvo, tokenString);
@@ -75,7 +75,7 @@ fun_decl    : tipo_esp ID { strcpy(nomeSalvo, tokenString);
                 $$->filho[1] = $7;
                 $$->atrib.nome = nomeSalvo;
                 $$->numlinha = numLinhaSalva;
-                $$->tipo = $1;
+                $$->tipo_c = $1->tipo_c;
               }
             ;
 params      : param_lista { $$ = $1;
@@ -102,7 +102,7 @@ param       : tipo_esp ID { strcpy(nomeSalvo, tokenString);
                    $$ = novoNoExp(E_Id);
                    $$-> atrib.nome = nomeSalvo;
                    $$-> numlinha = numLinhaSalva;
-                   $$-> tipo = $1;
+                   $$-> tipo_c = $1->tipo_c;
                  }
             | tipo_esp ID { strcpy(nomeSalvo, tokenString);
                    numLinhaSalva = numlinha;
@@ -112,11 +112,11 @@ param       : tipo_esp ID { strcpy(nomeSalvo, tokenString);
                    $$-> atrib.nome = nomeSalvo;
                    $$-> atrib.eh_vetor = true; // sinaliza que é um vetor
                    $$-> numlinha = numLinhaSalva;
-                   $$-> tipo = $1;
+                   $$-> tipo_c = $1->tipo_c;
               }
             ;
 bloco_decl  : ABRECH local_decl stmt_lista FECHACH { $2->irmao = $3;
-                                                   $$->$2;
+                                                   $$->filho[0] = $2; //nao tenho certeza
                                                  }                                 
             ;                                     
 local_decl  : local_decl var_decl  { YYSTYPE temp = $1;
@@ -183,24 +183,24 @@ exp         : var IGUAL exp
                 { $$ = novoNoExp(E_Op);
                   $$->filho[0] = $1;
                   $$->filho[1] = $3;
-                  $$->atrib.op = $2; //IGUAL
+                  $$->atrib.op = IGUAL; //IGUAL
                 }
             | simples_exp {$$ = $1;}
             ;
 var         : ID { strcpy(nomeSalvo, tokenString);
                    numLinhaSalva = numlinha;
                    $$ = novoNoExp(E_Id);
-                   $$->atrib.nome = nomesalvo;
-                   $$->numlinha = numLinhasalva;
-                   $$->eh_vetor = true;
+                   $$->atrib.nome = nomeSalvo;
+                   $$->numlinha = numLinhaSalva;
+                   $$->atrib.eh_vetor = true;
                  }
             | ID { strcpy(nomeSalvo, tokenString);
                    numLinhaSalva = numlinha;
                  }
             ABRECOL exp FECHACOL
                  { $$ = novoNoExp(E_Id);
-                   $$->atrib.nome = nomesalvo;
-                   $$->numlinha = numLinhasalva;
+                   $$->atrib.nome = nomeSalvo;
+                   $$->numlinha = numLinhaSalva;
                    $$->filho[0] = $4;
                  }
             ;
@@ -208,58 +208,59 @@ simples_exp : soma_exp relacional soma_exp
                 { $$ = novoNoExp(E_Op);
                   $$->filho[0] = $1;
                   $$->filho[1] = $3;
-                  $$->atrib.op = $2; // Token recebido pelo relacional
+                  $$->atrib.op = $2->atrib.op; // Token recebido pelo relacional
                 }
             | soma_exp {$$ = $1;}
             ;
-relacional  : MENIGUAL{$$ = $1;}
-            | MENOR{$$ = $1;}
-            | MAIOR{$$ = $1;}
-            | MAIIGUAL{$$ = $1;}
-            | IGUALIGUAL{$$ = $1;}
-            | DIF{$$ = $1;}
+relacional  : MENIGUAL{$$ = novoNoExp(E_Id); $$->atrib.op = MENIGUAL;}
+            | MENOR{$$ = novoNoExp(E_Id); $$->atrib.op = MENOR;}
+            | MAIOR{$$ = novoNoExp(E_Id); $$->atrib.op = MAIOR;}
+            | MAIIGUAL{$$ = novoNoExp(E_Id); $$->atrib.op = MAIIGUAL;}
+            | IGUALIGUAL{$$ = novoNoExp(E_Id); $$->atrib.op = IGUALIGUAL;}
+            | DIF{$$ = novoNoExp(E_Id); $$->atrib.op = DIF;}
             ;
 soma_exp    : soma_exp soma termo
                 { $$ = novoNoExp(E_Op);
                   $$->filho[0] = $1;
                   $$->filho[1] = $3;
-                  $$->atrib.op = $2; // Token recebido pelo "soma"
+                  $$->atrib.op = $2->atrib.op; // Token recebido pelo "soma"
                 }
             | termo {$$ = $1;}
             ;
-soma        : MAIS {$$ = $1;}
-            | MENOS {$$ = $1;}
+soma        : MAIS {$$ = novoNoExp(E_Id); $$->atrib.op = MAIS;}
+            | MENOS {$$ = novoNoExp(E_Id); $$->atrib.op = MENOR;}
+
             ;
 termo       : termo mult fator 
                 { $$ = novoNoExp(E_Op);
                   $$->filho[0] = $1;
                   $$->filho[1] = $3;
-                  $$->atrib.op = $2; // Token recebido pelo "mult"
+                  $$->atrib.op = $2->atrib.op; // Token recebido pelo "mult"
                 }
             | fator {$$ = $1;}
             ;
-mult        : VEZES {$$ = $1;}
-            | DIV {$$ = $1;}
+mult        : VEZES {$$ = novoNoExp(E_Id); $$->atrib.op = VEZES;}
+            | DIV {$$ = novoNoExp(E_Id); $$->atrib.op = DIV;}
             ;
 fator       : ABREPAR exp FECHAPAR {$$ = $1;}
             | var {$$ = $1;}
             | ativacao {$$ = $1;}
             | NUM { $$ = novoNoExp(E_Num);
-                    indice->atrib.val = atoi(tokenString);
+                    $$->atrib.val = atoi(tokenString);
                   }
             ;
 ativacao    : ID { strcpy(nomeSalvo, tokenString);
                    numLinhaSalva = numlinha;
                  }
             ABREPAR args FECHAPAR
-                 { $$->novoNoExp(E_Id);
+                 { $$ = novoNoExp(E_Id);
                    $$->filho[0] = $4;
                    $$->atrib.nome = nomeSalvo;
                    $$->numlinha = numLinhaSalva;
                  }
             ;
 args        : arg_lista {$$ = $1;}
-            | VAZIO {return NULL;}
+            | VAZIO {/*return NULL;*/return 0;}
             ;
 arg_lista   : arg_lista VIRG exp {  YYSTYPE temp = $1;
                                     // adiciona os nós como irmãos
@@ -279,15 +280,14 @@ arg_lista   : arg_lista VIRG exp {  YYSTYPE temp = $1;
 %%
 
 int yyerror(char * message){
-    //pensar depois se nós precisaremos de um arquivo "listing"...
-    fprintf(stderr,"Erro sintático na linha %d!\n mensagem: %s\n",numlinha,message);
-    fprintf(stderr,"Token atual: ");
-    if(rt == ID || rt == NUM){
-        fprintf(stderr,"%s, val= %s\n", nome_token(yychar),yytext);
+    fprintf(stdout,"Erro sintático na linha %d!\n mensagem: %s\n",numlinha,message);
+    fprintf(stdout,"Token atual: ");
+    if(yychar == ID || yychar == NUM){
+        fprintf(stdout,"%s, val= %s\n", nome_token(yychar),yytext);
     }else{
-        fprintf(stderr,"%s\n",nome_token(yychar), yytext);
+        fprintf(stdout,"%s\n",nome_token(yychar), yytext);
     }
-    erro = true;
+    //erro = true;
     return 0;
 }
 
@@ -297,10 +297,10 @@ int yyerror(char * message){
 static int yylex(void)
 { return retornaToken(); }
 
-TreeNode * parse(void)
+NoArvore * parse(void)
 {
   extern int yydebug;
- // yydebug = 1;
-  //yyparse();
+  yydebug = 1;
+  yyparse();
   return arvoreSalva;
 }

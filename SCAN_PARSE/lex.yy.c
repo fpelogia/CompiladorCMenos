@@ -351,8 +351,8 @@ static void yynoreturn yy_fatal_error ( const char* msg  );
 	(yy_hold_char) = *yy_cp; \
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
-#define YY_NUM_RULES 29
-#define YY_END_OF_BUFFER 30
+#define YY_NUM_RULES 30
+#define YY_END_OF_BUFFER 31
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -362,7 +362,7 @@ struct yy_trans_info
 	};
 static const flex_int16_t yy_accept[53] =
     {   0,
-        0,    0,   30,   28,   10,   11,   18,   19,   16,   12,
+       29,   29,   31,   28,   10,   11,   18,   19,   16,   12,
        27,   13,   17,    9,   26,   14,   24,   15,    8,   20,
        21,    8,    8,    8,    8,    8,   22,   23,   10,    1,
         9,   25,    8,    8,    3,    8,    8,    8,    8,    8,
@@ -758,163 +758,168 @@ case 1:
 YY_RULE_SETUP
 #line 9 "scan.l"
 { char c;
-                   int ast = 0;
-                  do
-                  { c = input();
-                    if (c == EOF) break;
-                    //if (c == '\n') numlinha++;
-                    if(c == '*'){
-                        ast = 1;
-                    }
-                  } while (ast != 1 || c != '/');
-                }
+           int ast = 0;
+          do
+          { c = input();
+            if (c == EOF) break;
+            if (c == '\n') numlinha++;
+            if(c == '*'){
+                ast = 1;
+            }
+          } while (ast != 1 || c != '/');
+        }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
 #line 20 "scan.l"
-{ /*printf("\t");puts(yytext);*/return ELSE;}
+{ return ELSE;}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
 #line 21 "scan.l"
-{ /*printf("\t");puts(yytext);*/ return IF;}
+{ return IF;}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
 #line 22 "scan.l"
-{ /*printf("\t");puts(yytext);*/return INT;}
+{ return INT;}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
 #line 23 "scan.l"
-{ /*printf("\t");puts(yytext);*/return RETURN;}
+{ return RETURN;}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
 #line 24 "scan.l"
-{ /*printf("\t");puts(yytext);*/return VOID;}
+{ return VOID;}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
 #line 25 "scan.l"
-{ /*printf("\t");puts(yytext);*/return WHILE;}
+{ return WHILE;}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
 #line 26 "scan.l"
-{/* printf("\t%d: ID, val= %s\n", numlinha, yytext); */return ID;}
+{return ID;}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
 #line 27 "scan.l"
-{ /*printf("\'t%d: NUM, val=%s\n", numlinha, yytext);*/ return NUM;}
+{  return NUM;}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
 #line 28 "scan.l"
-{/*ignora espaço*/}
+{}
 	YY_BREAK
 case 11:
 /* rule 11 can match eol */
 YY_RULE_SETUP
 #line 29 "scan.l"
-{ /*numlinha++;ECHO;*/yylineno++;return ENTER;}
+{ yylineno++;}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
 #line 30 "scan.l"
-{ /*printf("\t%d: +\n",numlinha);*/return MAIS;}
+{ return MAIS;}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
 #line 31 "scan.l"
-{/* printf("\t%d: -\n",numlinha);*/return MENOS;}
+{ return MENOS;}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
 #line 32 "scan.l"
-{/* printf("\t%d: <\n",numlinha);*/return MENIGUAL; }
+{ return MENIGUAL; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
 #line 33 "scan.l"
-{/* printf("\t%d: >\n",numlinha);*/return MAIIGUAL; }
+{ return MAIIGUAL; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
 #line 34 "scan.l"
-{/* printf("\t%d: *\n",numlinha);*/return VEZES; }
+{ return VEZES; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
 #line 35 "scan.l"
-{/* printf("\t%d: /\n",numlinha);*/return DIV; }
+{ return DIV; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
 #line 36 "scan.l"
-{/* printf("\t%d: (\n",numlinha);*/return ABREPAR; }
+{ return ABREPAR; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
 #line 37 "scan.l"
-{/* printf("\t%d: )\n",numlinha);*/return FECHAPAR; }
+{ return FECHAPAR; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
 #line 38 "scan.l"
-{/* printf("\t%d: [\n",numlinha);*/return ABRECOL; }
+{ return ABRECOL; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
 #line 39 "scan.l"
-{/* printf("\t%d: ]\n",numlinha);*/return FECHACOL; }
+{ return FECHACOL; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
 #line 40 "scan.l"
-{/* printf("\t%d: {\n",numlinha);*/return ABRECH; }
+{ return ABRECH; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
 #line 41 "scan.l"
-{/* printf("\t%d: }\n",numlinha);*/return FECHACH; }
+{ return FECHACH; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
 #line 42 "scan.l"
-{/* printf("\t%d: =\n",numlinha);*/return IGUAL; }
+{ return IGUAL; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
 #line 43 "scan.l"
-{/* printf("\t%d: ==\n",numlinha);*/ return IGUALIGUAL;}
+{ return IGUALIGUAL;}
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
 #line 44 "scan.l"
-{/* printf("\t%d: ;\n", numlinha);*/ return PVIRG;}
+{ return PVIRG;}
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
 #line 45 "scan.l"
-{/* printf("\t%d: ;\n", numlinha);*/ return VIRG;}
+{ return VIRG;}
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
 #line 46 "scan.l"
-{/* puts(yytext);*/ECHO;return ERRO;}
+{ ECHO; return ERRO;}
+	YY_BREAK
+case 29:
+YY_RULE_SETUP
+#line 47 "scan.l"
+{ return VAZIO;}
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
 #line 48 "scan.l"
 return FIMARQ;
 	YY_BREAK
-case 29:
+case 30:
 YY_RULE_SETUP
 #line 49 "scan.l"
 ECHO;
 	YY_BREAK
-#line 917 "lex.yy.c"
+#line 922 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -1919,18 +1924,19 @@ void yyfree (void * ptr )
 
 #line 49 "scan.l"
 
-Token retornaToken(FILE* arq)
+Token retornaToken(void)
 {
-    /*
-    if (argc == 2)
-    {
-        if(f_in = fopen(argv[1],"r")) yyin = f_in;
-        else perror(argv[0]);
+    static bool primeira_vez = true;
+    Token t;
+    if (primeira_vez){
+        yyin = arq_cod_fonte; // manda ler do arquivo com o código fonte
+        yyout = stdout;
+        numlinha++;
+        primeira_vez = false;
     }
-    else yyin = stdin;
-    */
-    yyin = arq;
-    yylex();
+    t = yylex();
+    strcpy(tokenString, yytext); // guarda conteúdo da string lida
+    return t;
 }
 
 

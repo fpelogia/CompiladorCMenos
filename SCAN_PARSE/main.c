@@ -2,34 +2,22 @@
 #include <stdlib.h>
 #include "definitions.h"
 #define MAX_LINHA 100
+//aloca as variaveis globais
+int numlinha = 0;
+FILE * arq_cod_fonte;
+
 int main(){
-    FILE* f = fopen("sample.c","r");
-    FILE* fc = fopen("sample.c","r");
-    if(f == NULL){
+    arq_cod_fonte = fopen("sample.c","r");
+    if(arq_cod_fonte == NULL){
         perror("Falha na leitura do arquivo");
     }
-    char linha[MAX_LINHA];
-    //while(fgets(linha, MAX_LINHA, f) != NULL){
-    while(1){
-        if(fgets(linha, MAX_LINHA, fc) == NULL){
-            break;
-        }
-        printf("\n%d: %s",yylineno, linha);
-        Token rt;
-        do{
-            rt = retornaToken(f);
-            if(rt == ENTER) break;
-            if(rt == ID || rt == NUM){
-                printf("\t%d: %s, val= %s\n",yylineno, nome_token[rt], yytext);
-            }else{
-                printf("\t%d: %s\n",yylineno, nome_token[rt]);
-            }
-        }while(1);
-        //if(retornaToken(f) == 0){
-        //    break;
-        //}
-    }
-    fclose(f);
-    fclose(fc);
+
+    NoArvore* arvoreSintatica;
+    arvoreSintatica = parse();
+    printf("nula ? R: %d\n",arvoreSintatica == NULL);
+    printf("Árvore Sintática:\n");
+    imprimeArvore(arvoreSintatica);
+
+    fclose(arq_cod_fonte);
     return 0;
 }

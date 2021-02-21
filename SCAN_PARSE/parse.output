@@ -2,7 +2,9 @@ Terminais sem uso na gramática
 
     COMENT
     ENTER
-    ERROR
+    ERRO
+    FIMARQ
+    ESPACO
 
 
 Estado 104 conflitos: 1 de deslocamento/redução
@@ -153,117 +155,119 @@ Terminais, com as regras onde eles aparecem
     FECHACH (284) 21
     COMENT (285)
     ENTER (286)
-    ERROR (287)
+    ERRO (287)
     VAZIO (288) 23 25 66
+    FIMARQ (289)
+    ESPACO (290)
 
 
 Não terminais com as regras onde eles aparecem
 
-    $accept (34)
+    $accept (36)
         à esquerda: 0
-    programa (35)
+    programa (37)
         à esquerda: 1
         à direita: 0
-    decl_lista (36)
+    decl_lista (38)
         à esquerda: 2 3
         à direita: 1 2
-    decl (37)
+    decl (39)
         à esquerda: 4 5
         à direita: 2 3
-    var_decl (38)
+    var_decl (40)
         à esquerda: 7 9
         à direita: 4 22
-    $@1 (39)
+    $@1 (41)
         à esquerda: 6
         à direita: 7
-    $@2 (40)
+    $@2 (42)
         à esquerda: 8
         à direita: 9
-    tipo_esp (41)
+    tipo_esp (43)
         à esquerda: 10 11
         à direita: 7 9 13 18 20
-    fun_decl (42)
+    fun_decl (44)
         à esquerda: 13
         à direita: 5
-    $@3 (43)
+    $@3 (45)
         à esquerda: 12
         à direita: 13
-    params (44)
+    params (46)
         à esquerda: 14 15
         à direita: 13
-    param_lista (45)
+    param_lista (47)
         à esquerda: 16 17
         à direita: 14 16
-    param (46)
+    param (48)
         à esquerda: 18 20
         à direita: 16 17 68
-    $@4 (47)
+    $@4 (49)
         à esquerda: 19
         à direita: 20
-    bloco_decl (48)
+    bloco_decl (50)
         à esquerda: 21
         à direita: 13 27
-    local_decl (49)
+    local_decl (51)
         à esquerda: 22 23
         à direita: 21 22
-    stmt_lista (50)
+    stmt_lista (52)
         à esquerda: 24 25
         à direita: 21 24
-    stmt (51)
+    stmt (53)
         à esquerda: 26 27 28 29 30
         à direita: 24 33 34 35
-    exp_decl (52)
+    exp_decl (54)
         à esquerda: 31 32
         à direita: 26
-    sel_decl (53)
+    sel_decl (55)
         à esquerda: 33 34
         à direita: 28
-    iter_decl (54)
+    iter_decl (56)
         à esquerda: 35
         à direita: 29
-    ret_decl (55)
+    ret_decl (57)
         à esquerda: 36 37
         à direita: 30
-    exp (56)
+    exp (58)
         à esquerda: 38 39
         à direita: 31 33 34 35 37 38 42 59 67 69
-    var (57)
+    var (59)
         à esquerda: 40 42
         à direita: 38 60
-    $@5 (58)
+    $@5 (60)
         à esquerda: 41
         à direita: 42
-    simples_exp (59)
+    simples_exp (61)
         à esquerda: 43 44
         à direita: 39
-    relacional (60)
+    relacional (62)
         à esquerda: 45 46 47 48 49 50
         à direita: 43
-    soma_exp (61)
+    soma_exp (63)
         à esquerda: 51 52
         à direita: 43 44 51
-    soma (62)
+    soma (64)
         à esquerda: 53 54
         à direita: 51
-    termo (63)
+    termo (65)
         à esquerda: 55 56
         à direita: 51 52 55
-    mult (64)
+    mult (66)
         à esquerda: 57 58
         à direita: 55
-    fator (65)
+    fator (67)
         à esquerda: 59 60 61 62
         à direita: 55 56
-    ativacao (66)
+    ativacao (68)
         à esquerda: 64
         à direita: 61
-    $@6 (67)
+    $@6 (69)
         à esquerda: 63
         à direita: 64
-    args (68)
+    args (70)
         à esquerda: 65 66
         à direita: 64
-    arg_lista (69)
+    arg_lista (71)
         à esquerda: 67 68 69
         à direita: 65 67
 

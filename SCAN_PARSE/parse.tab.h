@@ -83,8 +83,10 @@ extern int yydebug;
     FECHACH = 284,                 /* FECHACH  */
     COMENT = 285,                  /* COMENT  */
     ENTER = 286,                   /* ENTER  */
-    ERROR = 287,                   /* ERROR  */
-    VAZIO = 288                    /* VAZIO  */
+    ERRO = 287,                    /* ERRO  */
+    VAZIO = 288,                   /* VAZIO  */
+    FIMARQ = 289,                  /* FIMARQ  */
+    ESPACO = 290                   /* ESPACO  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif

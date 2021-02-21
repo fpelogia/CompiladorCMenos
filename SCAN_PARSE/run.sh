@@ -1,5 +1,7 @@
 #\!/bin/bash
+bison -dvg parse.y
 flex scan.l 
-gcc main.c lex.yy.c definitions.c -o exec -lfl
+gcc -c lex.yy.c
+gcc main.c lex.yy.o parse.tab.c definitions.c -o exec -lfl -ly
 ./exec 
 rm exec
