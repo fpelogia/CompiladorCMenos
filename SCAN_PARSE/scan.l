@@ -44,7 +44,7 @@ ENTER \n
 ";" { return PVIRG;}
 "," { return VIRG;}
 .   { ECHO; return ERRO;}
-
+""  { return VAZIO;}
 <<EOF>> return FIMARQ;
 %%
 Token retornaToken()

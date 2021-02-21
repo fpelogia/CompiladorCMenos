@@ -2,15 +2,14 @@
 
 char tokenString[MAX_TAM_TOKEN + 1];
 
-/*
-char* nome_token[] ={"FIMARQ", "ERRO",
-    "ELSE", "IF", "INT", "RETURN", "VOID", "WHILE",
-    "ID","NUM",
-    "IGUAL", "IGUALIGUAL", "DIF", "MENOR", "MAIOR", "MENIGUAL", "MAIIGUAL", "MAIS", "MENOS",
-    "VEZES", "DIV", "ABREPAR", "FECHAPAR", "PVIRG", "VIRG", "ABRECOL", "FECHACOL", "ABRECH", "FECHACH", "COMENT", "ENTER"
-};
-*/
-
+Tipo salvaTipoEsp(Token t){
+    if(t==INT)
+        return Integer;
+    else if(t==VOID)
+        return Void;
+    else 
+        return NULL;//vida que segue
+}   
 
 // Cria e retorna um novo Nó do tipo "Declaração"
 noArvore * novoNoDecl(TipoDecl tipo)

@@ -33,6 +33,8 @@ Token retornaToken();
 // Função definida com ajuda da ferramenta bison (yacc)
 NoArvore* parse(void);
 
+Tipo salvaTipoEsp(Token t);
+
 typedef int TokenType; // yacc define automaticamente os valores inteiros dos Tokens
 
 //==========  (Definição das estruturas de Árvore Sintática)  ==============
@@ -40,7 +42,7 @@ typedef int TokenType; // yacc define automaticamente os valores inteiros dos To
 typedef enum {TDecl,TExp,TStmt} TipoNo;
 typedef enum {D_var, D_func} TipoDecl;
 typedef enum {S_If,S_While,S_Else,S_Return,S_Params} TipoStmt;
-typedef enum {T_Operador,T_Num,T_Id} TipoExp;
+typedef enum {E_Op,E_Num,E_Id} TipoExp;
 typedef enum {Void,Integer} Tipo; // Usado para verificação de tipo
 
 #define MAXFILHOS 3
@@ -53,6 +55,7 @@ typedef struct noArvore{
     union { TipoDecl decl; TipoStmt stmt; TipoExp exp;} tipo; //talvez melhorar o nome
     union { TokenType op;
             int val;
+            bool eh_vetor;
             char * nome; } atrib;
     Tipo tipo; // para checar tipos em expressões
 } NoArvore;
