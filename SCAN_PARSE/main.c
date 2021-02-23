@@ -14,8 +14,12 @@ int main(){
 
     NoArvore* arvoreSintatica;
     arvoreSintatica = parse();
-    printf("nula ? R: %d\n",arvoreSintatica == NULL);
-    printf("Árvore Sintática:\n");
+   /* NoArvore* no;
+    no = arvoreSintatica;
+    printf("1)tipo_de_no: %d\n",no->tipo_de_no);
+    printf("1)tipo de retorno: %d\n",no->tipo_c);
+    printf("1)nomefunc: %s\n",no->atrib.nome);*/
+    printf("\n\nÁrvore Sintática:\n");
     imprimeArvore(arvoreSintatica);
 
     fclose(arq_cod_fonte);

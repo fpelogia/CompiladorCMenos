@@ -39,7 +39,7 @@
 # define YY_YY_PARSE_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 0
+# define YYDEBUG 1
 #endif
 #if YYDEBUG
 extern int yydebug;
@@ -84,9 +84,8 @@ extern int yydebug;
     COMENT = 285,                  /* COMENT  */
     ENTER = 286,                   /* ENTER  */
     ERRO = 287,                    /* ERRO  */
-    VAZIO = 288,                   /* VAZIO  */
-    FIMARQ = 289,                  /* FIMARQ  */
-    ESPACO = 290                   /* ESPACO  */
+    FIMARQ = 288,                  /* FIMARQ  */
+    ESPACO = 289                   /* ESPACO  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif

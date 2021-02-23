@@ -1,7 +1,5 @@
 #include "definitions.h"
 
-char tokenString[MAX_TAM_TOKEN + 1];
-
 // Cria e retorna um novo Nó do tipo "Declaração"
 NoArvore * novoNoDecl(TipoDecl tipo)
 { NoArvore * no = (NoArvore *) malloc(sizeof(NoArvore));
@@ -12,7 +10,7 @@ NoArvore * novoNoDecl(TipoDecl tipo)
     for (i=0;i<MAXFILHOS;i++) no->filho[i] = NULL;
     no->irmao = NULL;
     no->tipo_de_no = TDecl;
-    no->tipo.stmt = tipo;
+    no->tipo.decl = tipo;
     no->numlinha = numlinha;
   }
   return no;
@@ -47,10 +45,25 @@ NoArvore * novoNoExp(TipoExp tipo)
     t->tipo_de_no = TExp;
     t->tipo.exp = tipo;
     t->numlinha = numlinha;
-    t->tipo_c = Void;
   }
   return t;
 }
+
+/* Function copyString allocates and makes a new
+ * copy of an existing string
+ */
+char * copiaString(char * s)
+{ int n;
+  char * t;
+  if (s==NULL) return NULL;
+  n = strlen(s)+1;
+  t = malloc(n);
+  if (t==NULL)
+    fprintf(stdout,"Sem memória na linha %d\n",numlinha);
+  else strcpy(t,s);
+  return t;
+}
+
 
 /* Variable indentno is used by printTree to
  * store current number of spaces to indent
@@ -58,8 +71,8 @@ NoArvore * novoNoExp(TipoExp tipo)
 static int indentno = 0;
 
 /* macros to increase/decrease indentation */
-#define INDENT indentno+=2
-#define UNINDENT indentno-=2
+#define INDENT indentno+=4
+#define UNINDENT indentno-=4
 
 /* printSpaces indents by printing spaces */
 static void imprimeEspacos(void)
@@ -73,7 +86,11 @@ static void imprimeEspacos(void)
  */
 void imprimeArvore( NoArvore * arv )
 { int i;
+//  if (arv != NULL && arv->tipo_de_no==TExp && arv->tipo.exp ==E_Id && (strcmp(arv->atrib.nome,"sem_local_decl")==0 || strcmp(arv->atrib.nome,"sem_stmt_lista")==0)) {
+    // batata
+//  }else{
   INDENT;
+//  }
   while (arv != NULL) {
     imprimeEspacos();
     if (arv->tipo_de_no==TStmt)
@@ -87,6 +104,15 @@ void imprimeArvore( NoArvore * arv )
         case S_Params:
           fprintf(stdout,"Params\n");
           break;
+        case S_Atrib:
+          fprintf(stdout,"Atribuição\n");
+          break;
+        case S_Retorno:
+          fprintf(stdout,"Retorno\n");
+          break;
+        case S_Chamada:
+          fprintf(stdout,"Chamada da Função %s\n",arv->atrib.nome);
+          break;
         default:
           fprintf(stdout,"Tipo desconhecido de Stmt\n");
           break;
@@ -95,15 +121,20 @@ void imprimeArvore( NoArvore * arv )
     else if (arv->tipo_de_no==TExp)
     { switch (arv->tipo.exp) {
         case E_Op:
-          fprintf(stdout,"Op: ");
-          //printToken(arv->atrib.op,"\0");
-          printf("%s", nome_token(arv->atrib.op));
+          fprintf(stdout,"Op:%s\n", nome_token(arv->atrib.op));
           break;
         case E_Num:
           fprintf(stdout,"Num: %d\n",arv->atrib.val);
           break;
         case E_Id:
-          fprintf(stdout,"Id: %s\n",arv->atrib.nome);
+          // strcmp retorna 0 quando é igual
+          if (strcmp(arv->atrib.nome,"void") == 0){
+            fprintf(stdout,"void\n");
+          }else if(strcmp(arv->atrib.nome,"sem_local_decl") == 0 || strcmp(arv->atrib.nome,"sem_stmt_lista")==0){
+            // nada
+          }else{
+            fprintf(stdout,"Id: %s\n",arv->atrib.nome);
+          }
           break;
         default:
           fprintf(stdout,"Tipo desconhecido de Exp\n");
@@ -112,22 +143,29 @@ void imprimeArvore( NoArvore * arv )
     }else if (arv->tipo_de_no==TDecl)
     { switch (arv->tipo.decl) {
         case D_var:
-          fprintf(stdout,"Declaração da Variável %s do tipo %d\n",arv->atrib.nome, arv->tipo);
-          //printToken(arv->atrib.op,"\0");
-          //printf("%s", nome_token(arv->atrib.op));
-          break;
+          fprintf(stdout,"Variável %s\n",arv->atrib.nome);
+          break;         
         case D_func:
-          fprintf(stdout,"Declaração da Função %s com tipo de retorno %d \n",arv->atrib.nome, arv->tipo);
+          //if (arv->tipo_c)
+          fprintf(stdout,"Função %s\n",arv->atrib.nome);
+          //else  
+            //fprintf(stdout,"Função %s com tipo de retorno void \n",arv->atrib.nome, arv->tipo_c);
+          break;
+        case D_Tipo:
+          if (arv->tipo_c == Integer)
+            fprintf(stdout,"Tipo int\n");
+          else  
+            fprintf(stdout,"Tipo Void\n");
           break;
         default:
           fprintf(stdout,"Tipo desconhecido de Decl\n");
           break;
       }
     }
-
     else fprintf(stdout,"Tipo desconhecido de Nó\n");
-    for (i=0;i<MAXFILHOS;i++)
-         imprimeArvore(arv->filho[i]);
+    for (i=0;i<MAXFILHOS;i++){
+        imprimeArvore(arv->filho[i]);
+    }
     arv = arv->irmao;
   }
   UNINDENT;

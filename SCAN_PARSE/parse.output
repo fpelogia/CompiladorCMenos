@@ -7,7 +7,7 @@ Terminais sem uso na gramática
     ESPACO
 
 
-Estado 104 conflitos: 1 de deslocamento/redução
+Estado 101 conflitos: 1 de deslocamento/redução
 
 
 Gramática
@@ -52,10 +52,10 @@ Gramática
    21 bloco_decl: ABRECH local_decl stmt_lista FECHACH
 
    22 local_decl: local_decl var_decl
-   23           | VAZIO
+   23           | %empty
 
    24 stmt_lista: stmt_lista stmt
-   25           | VAZIO
+   25           | %empty
 
    26 stmt: exp_decl
    27     | bloco_decl
@@ -115,7 +115,7 @@ Gramática
    64 ativacao: ID $@6 ABREPAR args FECHAPAR
 
    65 args: arg_lista
-   66     | VAZIO
+   66     | %empty
 
    67 arg_lista: arg_lista VIRG exp
    68          | param
@@ -156,118 +156,117 @@ Terminais, com as regras onde eles aparecem
     COMENT (285)
     ENTER (286)
     ERRO (287)
-    VAZIO (288) 23 25 66
-    FIMARQ (289)
-    ESPACO (290)
+    FIMARQ (288)
+    ESPACO (289)
 
 
 Não terminais com as regras onde eles aparecem
 
-    $accept (36)
+    $accept (35)
         à esquerda: 0
-    programa (37)
+    programa (36)
         à esquerda: 1
         à direita: 0
-    decl_lista (38)
+    decl_lista (37)
         à esquerda: 2 3
         à direita: 1 2
-    decl (39)
+    decl (38)
         à esquerda: 4 5
         à direita: 2 3
-    var_decl (40)
+    var_decl (39)
         à esquerda: 7 9
         à direita: 4 22
-    $@1 (41)
+    $@1 (40)
         à esquerda: 6
         à direita: 7
-    $@2 (42)
+    $@2 (41)
         à esquerda: 8
         à direita: 9
-    tipo_esp (43)
+    tipo_esp (42)
         à esquerda: 10 11
         à direita: 7 9 13 18 20
-    fun_decl (44)
+    fun_decl (43)
         à esquerda: 13
         à direita: 5
-    $@3 (45)
+    $@3 (44)
         à esquerda: 12
         à direita: 13
-    params (46)
+    params (45)
         à esquerda: 14 15
         à direita: 13
-    param_lista (47)
+    param_lista (46)
         à esquerda: 16 17
         à direita: 14 16
-    param (48)
+    param (47)
         à esquerda: 18 20
         à direita: 16 17 68
-    $@4 (49)
+    $@4 (48)
         à esquerda: 19
         à direita: 20
-    bloco_decl (50)
+    bloco_decl (49)
         à esquerda: 21
         à direita: 13 27
-    local_decl (51)
+    local_decl (50)
         à esquerda: 22 23
         à direita: 21 22
-    stmt_lista (52)
+    stmt_lista (51)
         à esquerda: 24 25
         à direita: 21 24
-    stmt (53)
+    stmt (52)
         à esquerda: 26 27 28 29 30
         à direita: 24 33 34 35
-    exp_decl (54)
+    exp_decl (53)
         à esquerda: 31 32
         à direita: 26
-    sel_decl (55)
+    sel_decl (54)
         à esquerda: 33 34
         à direita: 28
-    iter_decl (56)
+    iter_decl (55)
         à esquerda: 35
         à direita: 29
-    ret_decl (57)
+    ret_decl (56)
         à esquerda: 36 37
         à direita: 30
-    exp (58)
+    exp (57)
         à esquerda: 38 39
         à direita: 31 33 34 35 37 38 42 59 67 69
-    var (59)
+    var (58)
         à esquerda: 40 42
         à direita: 38 60
-    $@5 (60)
+    $@5 (59)
         à esquerda: 41
         à direita: 42
-    simples_exp (61)
+    simples_exp (60)
         à esquerda: 43 44
         à direita: 39
-    relacional (62)
+    relacional (61)
         à esquerda: 45 46 47 48 49 50
         à direita: 43
-    soma_exp (63)
+    soma_exp (62)
         à esquerda: 51 52
         à direita: 43 44 51
-    soma (64)
+    soma (63)
         à esquerda: 53 54
         à direita: 51
-    termo (65)
+    termo (64)
         à esquerda: 55 56
         à direita: 51 52 55
-    mult (66)
+    mult (65)
         à esquerda: 57 58
         à direita: 55
-    fator (67)
+    fator (66)
         à esquerda: 59 60 61 62
         à direita: 55 56
-    ativacao (68)
+    ativacao (67)
         à esquerda: 64
         à direita: 61
-    $@6 (69)
+    $@6 (68)
         à esquerda: 63
         à direita: 64
-    args (70)
+    args (69)
         à esquerda: 65 66
         à direita: 64
-    arg_lista (71)
+    arg_lista (70)
         à esquerda: 67 68 69
         à direita: 65 67
 
@@ -535,9 +534,9 @@ Estado 30
 
    21 bloco_decl: ABRECH • local_decl stmt_lista FECHACH
 
-    VAZIO  deslocar, e ir ao estado 34
+    $padrão  reduzir usando a regra 23 (local_decl)
 
-    local_decl  ir ao estado 35
+    local_decl  ir ao estado 34
 
 
 Estado 31
@@ -558,90 +557,77 @@ Estado 33
 
    20 param: tipo_esp ID $@4 ABRECOL • FECHACOL
 
-    FECHACOL  deslocar, e ir ao estado 36
+    FECHACOL  deslocar, e ir ao estado 35
 
 
 Estado 34
 
-   23 local_decl: VAZIO •
-
-    $padrão  reduzir usando a regra 23 (local_decl)
-
-
-Estado 35
-
    21 bloco_decl: ABRECH local_decl • stmt_lista FECHACH
    22 local_decl: local_decl • var_decl
 
-    INT    deslocar, e ir ao estado 1
-    VOID   deslocar, e ir ao estado 2
-    VAZIO  deslocar, e ir ao estado 37
+    INT   deslocar, e ir ao estado 1
+    VOID  deslocar, e ir ao estado 2
 
-    var_decl    ir ao estado 38
-    tipo_esp    ir ao estado 39
-    stmt_lista  ir ao estado 40
+    $padrão  reduzir usando a regra 25 (stmt_lista)
+
+    var_decl    ir ao estado 36
+    tipo_esp    ir ao estado 37
+    stmt_lista  ir ao estado 38
 
 
-Estado 36
+Estado 35
 
    20 param: tipo_esp ID $@4 ABRECOL FECHACOL •
 
     $padrão  reduzir usando a regra 20 (param)
 
 
-Estado 37
-
-   25 stmt_lista: VAZIO •
-
-    $padrão  reduzir usando a regra 25 (stmt_lista)
-
-
-Estado 38
+Estado 36
 
    22 local_decl: local_decl var_decl •
 
     $padrão  reduzir usando a regra 22 (local_decl)
 
 
-Estado 39
+Estado 37
 
     7 var_decl: tipo_esp • ID $@1 PVIRG
     9         | tipo_esp • ID $@2 ABRECOL NUM FECHACOL PVIRG
 
-    ID  deslocar, e ir ao estado 41
+    ID  deslocar, e ir ao estado 39
 
 
-Estado 40
+Estado 38
 
    21 bloco_decl: ABRECH local_decl stmt_lista • FECHACH
    24 stmt_lista: stmt_lista • stmt
 
-    IF       deslocar, e ir ao estado 42
-    WHILE    deslocar, e ir ao estado 43
-    RETURN   deslocar, e ir ao estado 44
-    ID       deslocar, e ir ao estado 45
-    NUM      deslocar, e ir ao estado 46
-    ABREPAR  deslocar, e ir ao estado 47
-    PVIRG    deslocar, e ir ao estado 48
+    IF       deslocar, e ir ao estado 40
+    WHILE    deslocar, e ir ao estado 41
+    RETURN   deslocar, e ir ao estado 42
+    ID       deslocar, e ir ao estado 43
+    NUM      deslocar, e ir ao estado 44
+    ABREPAR  deslocar, e ir ao estado 45
+    PVIRG    deslocar, e ir ao estado 46
     ABRECH   deslocar, e ir ao estado 30
-    FECHACH  deslocar, e ir ao estado 49
+    FECHACH  deslocar, e ir ao estado 47
 
-    bloco_decl   ir ao estado 50
-    stmt         ir ao estado 51
-    exp_decl     ir ao estado 52
-    sel_decl     ir ao estado 53
-    iter_decl    ir ao estado 54
-    ret_decl     ir ao estado 55
-    exp          ir ao estado 56
-    var          ir ao estado 57
-    simples_exp  ir ao estado 58
-    soma_exp     ir ao estado 59
-    termo        ir ao estado 60
-    fator        ir ao estado 61
-    ativacao     ir ao estado 62
+    bloco_decl   ir ao estado 48
+    stmt         ir ao estado 49
+    exp_decl     ir ao estado 50
+    sel_decl     ir ao estado 51
+    iter_decl    ir ao estado 52
+    ret_decl     ir ao estado 53
+    exp          ir ao estado 54
+    var          ir ao estado 55
+    simples_exp  ir ao estado 56
+    soma_exp     ir ao estado 57
+    termo        ir ao estado 58
+    fator        ir ao estado 59
+    ativacao     ir ao estado 60
 
 
-Estado 41
+Estado 39
 
     7 var_decl: tipo_esp ID • $@1 PVIRG
     9         | tipo_esp ID • $@2 ABRECOL NUM FECHACOL PVIRG
@@ -653,41 +639,41 @@ Estado 41
     $@2  ir ao estado 13
 
 
-Estado 42
+Estado 40
 
    33 sel_decl: IF • ABREPAR exp FECHAPAR stmt
    34         | IF • ABREPAR exp FECHAPAR stmt ELSE stmt
 
-    ABREPAR  deslocar, e ir ao estado 63
+    ABREPAR  deslocar, e ir ao estado 61
 
 
-Estado 43
+Estado 41
 
    35 iter_decl: WHILE • ABREPAR exp FECHAPAR stmt
 
-    ABREPAR  deslocar, e ir ao estado 64
+    ABREPAR  deslocar, e ir ao estado 62
 
 
-Estado 44
+Estado 42
 
    36 ret_decl: RETURN • PVIRG
    37         | RETURN • exp PVIRG
 
-    ID       deslocar, e ir ao estado 45
-    NUM      deslocar, e ir ao estado 46
-    ABREPAR  deslocar, e ir ao estado 47
-    PVIRG    deslocar, e ir ao estado 65
+    ID       deslocar, e ir ao estado 43
+    NUM      deslocar, e ir ao estado 44
+    ABREPAR  deslocar, e ir ao estado 45
+    PVIRG    deslocar, e ir ao estado 63
 
-    exp          ir ao estado 66
-    var          ir ao estado 57
-    simples_exp  ir ao estado 58
-    soma_exp     ir ao estado 59
-    termo        ir ao estado 60
-    fator        ir ao estado 61
-    ativacao     ir ao estado 62
+    exp          ir ao estado 64
+    var          ir ao estado 55
+    simples_exp  ir ao estado 56
+    soma_exp     ir ao estado 57
+    termo        ir ao estado 58
+    fator        ir ao estado 59
+    ativacao     ir ao estado 60
 
 
-Estado 45
+Estado 43
 
    40 var: ID •
    42    | ID • $@5 ABRECOL exp FECHACOL
@@ -697,672 +683,666 @@ Estado 45
     ABRECOL  reduzir usando a regra 41 ($@5)
     $padrão  reduzir usando a regra 40 (var)
 
-    $@5  ir ao estado 67
-    $@6  ir ao estado 68
+    $@5  ir ao estado 65
+    $@6  ir ao estado 66
 
 
-Estado 46
+Estado 44
 
    62 fator: NUM •
 
     $padrão  reduzir usando a regra 62 (fator)
 
 
-Estado 47
+Estado 45
 
    59 fator: ABREPAR • exp FECHAPAR
 
-    ID       deslocar, e ir ao estado 45
-    NUM      deslocar, e ir ao estado 46
-    ABREPAR  deslocar, e ir ao estado 47
+    ID       deslocar, e ir ao estado 43
+    NUM      deslocar, e ir ao estado 44
+    ABREPAR  deslocar, e ir ao estado 45
 
-    exp          ir ao estado 69
-    var          ir ao estado 57
-    simples_exp  ir ao estado 58
-    soma_exp     ir ao estado 59
-    termo        ir ao estado 60
-    fator        ir ao estado 61
-    ativacao     ir ao estado 62
+    exp          ir ao estado 67
+    var          ir ao estado 55
+    simples_exp  ir ao estado 56
+    soma_exp     ir ao estado 57
+    termo        ir ao estado 58
+    fator        ir ao estado 59
+    ativacao     ir ao estado 60
 
 
-Estado 48
+Estado 46
 
    32 exp_decl: PVIRG •
 
     $padrão  reduzir usando a regra 32 (exp_decl)
 
 
-Estado 49
+Estado 47
 
    21 bloco_decl: ABRECH local_decl stmt_lista FECHACH •
 
     $padrão  reduzir usando a regra 21 (bloco_decl)
 
 
-Estado 50
+Estado 48
 
    27 stmt: bloco_decl •
 
     $padrão  reduzir usando a regra 27 (stmt)
 
 
-Estado 51
+Estado 49
 
    24 stmt_lista: stmt_lista stmt •
 
     $padrão  reduzir usando a regra 24 (stmt_lista)
 
 
-Estado 52
+Estado 50
 
    26 stmt: exp_decl •
 
     $padrão  reduzir usando a regra 26 (stmt)
 
 
-Estado 53
+Estado 51
 
    28 stmt: sel_decl •
 
     $padrão  reduzir usando a regra 28 (stmt)
 
 
-Estado 54
+Estado 52
 
    29 stmt: iter_decl •
 
     $padrão  reduzir usando a regra 29 (stmt)
 
 
-Estado 55
+Estado 53
 
    30 stmt: ret_decl •
 
     $padrão  reduzir usando a regra 30 (stmt)
 
 
-Estado 56
+Estado 54
 
    31 exp_decl: exp • PVIRG
 
-    PVIRG  deslocar, e ir ao estado 70
+    PVIRG  deslocar, e ir ao estado 68
 
 
-Estado 57
+Estado 55
 
    38 exp: var • IGUAL exp
    60 fator: var •
 
-    IGUAL  deslocar, e ir ao estado 71
+    IGUAL  deslocar, e ir ao estado 69
 
     $padrão  reduzir usando a regra 60 (fator)
 
 
-Estado 58
+Estado 56
 
    39 exp: simples_exp •
 
     $padrão  reduzir usando a regra 39 (exp)
 
 
-Estado 59
+Estado 57
 
    43 simples_exp: soma_exp • relacional soma_exp
    44            | soma_exp •
    51 soma_exp: soma_exp • soma termo
 
-    IGUALIGUAL  deslocar, e ir ao estado 72
-    DIF         deslocar, e ir ao estado 73
-    MENOR       deslocar, e ir ao estado 74
-    MAIOR       deslocar, e ir ao estado 75
-    MENIGUAL    deslocar, e ir ao estado 76
-    MAIIGUAL    deslocar, e ir ao estado 77
-    MAIS        deslocar, e ir ao estado 78
-    MENOS       deslocar, e ir ao estado 79
+    IGUALIGUAL  deslocar, e ir ao estado 70
+    DIF         deslocar, e ir ao estado 71
+    MENOR       deslocar, e ir ao estado 72
+    MAIOR       deslocar, e ir ao estado 73
+    MENIGUAL    deslocar, e ir ao estado 74
+    MAIIGUAL    deslocar, e ir ao estado 75
+    MAIS        deslocar, e ir ao estado 76
+    MENOS       deslocar, e ir ao estado 77
 
     $padrão  reduzir usando a regra 44 (simples_exp)
 
-    relacional  ir ao estado 80
-    soma        ir ao estado 81
+    relacional  ir ao estado 78
+    soma        ir ao estado 79
 
 
-Estado 60
+Estado 58
 
    52 soma_exp: termo •
    55 termo: termo • mult fator
 
-    VEZES  deslocar, e ir ao estado 82
-    DIV    deslocar, e ir ao estado 83
+    VEZES  deslocar, e ir ao estado 80
+    DIV    deslocar, e ir ao estado 81
 
     $padrão  reduzir usando a regra 52 (soma_exp)
 
-    mult  ir ao estado 84
+    mult  ir ao estado 82
 
 
-Estado 61
+Estado 59
 
    56 termo: fator •
 
     $padrão  reduzir usando a regra 56 (termo)
 
 
-Estado 62
+Estado 60
 
    61 fator: ativacao •
 
     $padrão  reduzir usando a regra 61 (fator)
 
 
-Estado 63
+Estado 61
 
    33 sel_decl: IF ABREPAR • exp FECHAPAR stmt
    34         | IF ABREPAR • exp FECHAPAR stmt ELSE stmt
 
-    ID       deslocar, e ir ao estado 45
-    NUM      deslocar, e ir ao estado 46
-    ABREPAR  deslocar, e ir ao estado 47
+    ID       deslocar, e ir ao estado 43
+    NUM      deslocar, e ir ao estado 44
+    ABREPAR  deslocar, e ir ao estado 45
 
-    exp          ir ao estado 85
-    var          ir ao estado 57
-    simples_exp  ir ao estado 58
-    soma_exp     ir ao estado 59
-    termo        ir ao estado 60
-    fator        ir ao estado 61
-    ativacao     ir ao estado 62
+    exp          ir ao estado 83
+    var          ir ao estado 55
+    simples_exp  ir ao estado 56
+    soma_exp     ir ao estado 57
+    termo        ir ao estado 58
+    fator        ir ao estado 59
+    ativacao     ir ao estado 60
 
 
-Estado 64
+Estado 62
 
    35 iter_decl: WHILE ABREPAR • exp FECHAPAR stmt
 
-    ID       deslocar, e ir ao estado 45
-    NUM      deslocar, e ir ao estado 46
-    ABREPAR  deslocar, e ir ao estado 47
+    ID       deslocar, e ir ao estado 43
+    NUM      deslocar, e ir ao estado 44
+    ABREPAR  deslocar, e ir ao estado 45
 
-    exp          ir ao estado 86
-    var          ir ao estado 57
-    simples_exp  ir ao estado 58
-    soma_exp     ir ao estado 59
-    termo        ir ao estado 60
-    fator        ir ao estado 61
-    ativacao     ir ao estado 62
+    exp          ir ao estado 84
+    var          ir ao estado 55
+    simples_exp  ir ao estado 56
+    soma_exp     ir ao estado 57
+    termo        ir ao estado 58
+    fator        ir ao estado 59
+    ativacao     ir ao estado 60
 
 
-Estado 65
+Estado 63
 
    36 ret_decl: RETURN PVIRG •
 
     $padrão  reduzir usando a regra 36 (ret_decl)
 
 
-Estado 66
+Estado 64
 
    37 ret_decl: RETURN exp • PVIRG
 
-    PVIRG  deslocar, e ir ao estado 87
+    PVIRG  deslocar, e ir ao estado 85
+
+
+Estado 65
+
+   42 var: ID $@5 • ABRECOL exp FECHACOL
+
+    ABRECOL  deslocar, e ir ao estado 86
+
+
+Estado 66
+
+   64 ativacao: ID $@6 • ABREPAR args FECHAPAR
+
+    ABREPAR  deslocar, e ir ao estado 87
 
 
 Estado 67
 
-   42 var: ID $@5 • ABRECOL exp FECHACOL
+   59 fator: ABREPAR exp • FECHAPAR
 
-    ABRECOL  deslocar, e ir ao estado 88
+    FECHAPAR  deslocar, e ir ao estado 88
 
 
 Estado 68
-
-   64 ativacao: ID $@6 • ABREPAR args FECHAPAR
-
-    ABREPAR  deslocar, e ir ao estado 89
-
-
-Estado 69
-
-   59 fator: ABREPAR exp • FECHAPAR
-
-    FECHAPAR  deslocar, e ir ao estado 90
-
-
-Estado 70
 
    31 exp_decl: exp PVIRG •
 
     $padrão  reduzir usando a regra 31 (exp_decl)
 
 
-Estado 71
+Estado 69
 
    38 exp: var IGUAL • exp
 
-    ID       deslocar, e ir ao estado 45
-    NUM      deslocar, e ir ao estado 46
-    ABREPAR  deslocar, e ir ao estado 47
+    ID       deslocar, e ir ao estado 43
+    NUM      deslocar, e ir ao estado 44
+    ABREPAR  deslocar, e ir ao estado 45
 
-    exp          ir ao estado 91
-    var          ir ao estado 57
-    simples_exp  ir ao estado 58
-    soma_exp     ir ao estado 59
-    termo        ir ao estado 60
-    fator        ir ao estado 61
-    ativacao     ir ao estado 62
+    exp          ir ao estado 89
+    var          ir ao estado 55
+    simples_exp  ir ao estado 56
+    soma_exp     ir ao estado 57
+    termo        ir ao estado 58
+    fator        ir ao estado 59
+    ativacao     ir ao estado 60
 
 
-Estado 72
+Estado 70
 
    49 relacional: IGUALIGUAL •
 
     $padrão  reduzir usando a regra 49 (relacional)
 
 
-Estado 73
+Estado 71
 
    50 relacional: DIF •
 
     $padrão  reduzir usando a regra 50 (relacional)
 
 
-Estado 74
+Estado 72
 
    46 relacional: MENOR •
 
     $padrão  reduzir usando a regra 46 (relacional)
 
 
-Estado 75
+Estado 73
 
    47 relacional: MAIOR •
 
     $padrão  reduzir usando a regra 47 (relacional)
 
 
-Estado 76
+Estado 74
 
    45 relacional: MENIGUAL •
 
     $padrão  reduzir usando a regra 45 (relacional)
 
 
-Estado 77
+Estado 75
 
    48 relacional: MAIIGUAL •
 
     $padrão  reduzir usando a regra 48 (relacional)
 
 
-Estado 78
+Estado 76
 
    53 soma: MAIS •
 
     $padrão  reduzir usando a regra 53 (soma)
 
 
-Estado 79
+Estado 77
 
    54 soma: MENOS •
 
     $padrão  reduzir usando a regra 54 (soma)
 
 
-Estado 80
+Estado 78
 
    43 simples_exp: soma_exp relacional • soma_exp
 
-    ID       deslocar, e ir ao estado 45
-    NUM      deslocar, e ir ao estado 46
-    ABREPAR  deslocar, e ir ao estado 47
+    ID       deslocar, e ir ao estado 43
+    NUM      deslocar, e ir ao estado 44
+    ABREPAR  deslocar, e ir ao estado 45
 
-    var       ir ao estado 92
-    soma_exp  ir ao estado 93
-    termo     ir ao estado 60
-    fator     ir ao estado 61
-    ativacao  ir ao estado 62
+    var       ir ao estado 90
+    soma_exp  ir ao estado 91
+    termo     ir ao estado 58
+    fator     ir ao estado 59
+    ativacao  ir ao estado 60
 
 
-Estado 81
+Estado 79
 
    51 soma_exp: soma_exp soma • termo
 
-    ID       deslocar, e ir ao estado 45
-    NUM      deslocar, e ir ao estado 46
-    ABREPAR  deslocar, e ir ao estado 47
+    ID       deslocar, e ir ao estado 43
+    NUM      deslocar, e ir ao estado 44
+    ABREPAR  deslocar, e ir ao estado 45
 
-    var       ir ao estado 92
-    termo     ir ao estado 94
-    fator     ir ao estado 61
-    ativacao  ir ao estado 62
+    var       ir ao estado 90
+    termo     ir ao estado 92
+    fator     ir ao estado 59
+    ativacao  ir ao estado 60
 
 
-Estado 82
+Estado 80
 
    57 mult: VEZES •
 
     $padrão  reduzir usando a regra 57 (mult)
 
 
-Estado 83
+Estado 81
 
    58 mult: DIV •
 
     $padrão  reduzir usando a regra 58 (mult)
 
 
-Estado 84
+Estado 82
 
    55 termo: termo mult • fator
 
-    ID       deslocar, e ir ao estado 45
-    NUM      deslocar, e ir ao estado 46
-    ABREPAR  deslocar, e ir ao estado 47
+    ID       deslocar, e ir ao estado 43
+    NUM      deslocar, e ir ao estado 44
+    ABREPAR  deslocar, e ir ao estado 45
 
-    var       ir ao estado 92
-    fator     ir ao estado 95
-    ativacao  ir ao estado 62
+    var       ir ao estado 90
+    fator     ir ao estado 93
+    ativacao  ir ao estado 60
 
 
-Estado 85
+Estado 83
 
    33 sel_decl: IF ABREPAR exp • FECHAPAR stmt
    34         | IF ABREPAR exp • FECHAPAR stmt ELSE stmt
 
-    FECHAPAR  deslocar, e ir ao estado 96
+    FECHAPAR  deslocar, e ir ao estado 94
 
 
-Estado 86
+Estado 84
 
    35 iter_decl: WHILE ABREPAR exp • FECHAPAR stmt
 
-    FECHAPAR  deslocar, e ir ao estado 97
+    FECHAPAR  deslocar, e ir ao estado 95
 
 
-Estado 87
+Estado 85
 
    37 ret_decl: RETURN exp PVIRG •
 
     $padrão  reduzir usando a regra 37 (ret_decl)
 
 
-Estado 88
+Estado 86
 
    42 var: ID $@5 ABRECOL • exp FECHACOL
 
-    ID       deslocar, e ir ao estado 45
-    NUM      deslocar, e ir ao estado 46
-    ABREPAR  deslocar, e ir ao estado 47
+    ID       deslocar, e ir ao estado 43
+    NUM      deslocar, e ir ao estado 44
+    ABREPAR  deslocar, e ir ao estado 45
 
-    exp          ir ao estado 98
-    var          ir ao estado 57
-    simples_exp  ir ao estado 58
-    soma_exp     ir ao estado 59
-    termo        ir ao estado 60
-    fator        ir ao estado 61
-    ativacao     ir ao estado 62
+    exp          ir ao estado 96
+    var          ir ao estado 55
+    simples_exp  ir ao estado 56
+    soma_exp     ir ao estado 57
+    termo        ir ao estado 58
+    fator        ir ao estado 59
+    ativacao     ir ao estado 60
 
 
-Estado 89
+Estado 87
 
    64 ativacao: ID $@6 ABREPAR • args FECHAPAR
 
     INT      deslocar, e ir ao estado 1
     VOID     deslocar, e ir ao estado 2
-    ID       deslocar, e ir ao estado 45
-    NUM      deslocar, e ir ao estado 46
-    ABREPAR  deslocar, e ir ao estado 47
-    VAZIO    deslocar, e ir ao estado 99
+    ID       deslocar, e ir ao estado 43
+    NUM      deslocar, e ir ao estado 44
+    ABREPAR  deslocar, e ir ao estado 45
+
+    $padrão  reduzir usando a regra 66 (args)
 
     tipo_esp     ir ao estado 20
-    param        ir ao estado 100
-    exp          ir ao estado 101
-    var          ir ao estado 57
-    simples_exp  ir ao estado 58
-    soma_exp     ir ao estado 59
-    termo        ir ao estado 60
-    fator        ir ao estado 61
-    ativacao     ir ao estado 62
-    args         ir ao estado 102
-    arg_lista    ir ao estado 103
+    param        ir ao estado 97
+    exp          ir ao estado 98
+    var          ir ao estado 55
+    simples_exp  ir ao estado 56
+    soma_exp     ir ao estado 57
+    termo        ir ao estado 58
+    fator        ir ao estado 59
+    ativacao     ir ao estado 60
+    args         ir ao estado 99
+    arg_lista    ir ao estado 100
 
 
-Estado 90
+Estado 88
 
    59 fator: ABREPAR exp FECHAPAR •
 
     $padrão  reduzir usando a regra 59 (fator)
 
 
-Estado 91
+Estado 89
 
    38 exp: var IGUAL exp •
 
     $padrão  reduzir usando a regra 38 (exp)
 
 
-Estado 92
+Estado 90
 
    60 fator: var •
 
     $padrão  reduzir usando a regra 60 (fator)
 
 
-Estado 93
+Estado 91
 
    43 simples_exp: soma_exp relacional soma_exp •
    51 soma_exp: soma_exp • soma termo
 
-    MAIS   deslocar, e ir ao estado 78
-    MENOS  deslocar, e ir ao estado 79
+    MAIS   deslocar, e ir ao estado 76
+    MENOS  deslocar, e ir ao estado 77
 
     $padrão  reduzir usando a regra 43 (simples_exp)
 
-    soma  ir ao estado 81
+    soma  ir ao estado 79
 
 
-Estado 94
+Estado 92
 
    51 soma_exp: soma_exp soma termo •
    55 termo: termo • mult fator
 
-    VEZES  deslocar, e ir ao estado 82
-    DIV    deslocar, e ir ao estado 83
+    VEZES  deslocar, e ir ao estado 80
+    DIV    deslocar, e ir ao estado 81
 
     $padrão  reduzir usando a regra 51 (soma_exp)
 
-    mult  ir ao estado 84
+    mult  ir ao estado 82
 
 
-Estado 95
+Estado 93
 
    55 termo: termo mult fator •
 
     $padrão  reduzir usando a regra 55 (termo)
 
 
-Estado 96
+Estado 94
 
    33 sel_decl: IF ABREPAR exp FECHAPAR • stmt
    34         | IF ABREPAR exp FECHAPAR • stmt ELSE stmt
 
-    IF       deslocar, e ir ao estado 42
-    WHILE    deslocar, e ir ao estado 43
-    RETURN   deslocar, e ir ao estado 44
-    ID       deslocar, e ir ao estado 45
-    NUM      deslocar, e ir ao estado 46
-    ABREPAR  deslocar, e ir ao estado 47
-    PVIRG    deslocar, e ir ao estado 48
+    IF       deslocar, e ir ao estado 40
+    WHILE    deslocar, e ir ao estado 41
+    RETURN   deslocar, e ir ao estado 42
+    ID       deslocar, e ir ao estado 43
+    NUM      deslocar, e ir ao estado 44
+    ABREPAR  deslocar, e ir ao estado 45
+    PVIRG    deslocar, e ir ao estado 46
     ABRECH   deslocar, e ir ao estado 30
 
-    bloco_decl   ir ao estado 50
-    stmt         ir ao estado 104
-    exp_decl     ir ao estado 52
-    sel_decl     ir ao estado 53
-    iter_decl    ir ao estado 54
-    ret_decl     ir ao estado 55
-    exp          ir ao estado 56
-    var          ir ao estado 57
-    simples_exp  ir ao estado 58
-    soma_exp     ir ao estado 59
-    termo        ir ao estado 60
-    fator        ir ao estado 61
-    ativacao     ir ao estado 62
+    bloco_decl   ir ao estado 48
+    stmt         ir ao estado 101
+    exp_decl     ir ao estado 50
+    sel_decl     ir ao estado 51
+    iter_decl    ir ao estado 52
+    ret_decl     ir ao estado 53
+    exp          ir ao estado 54
+    var          ir ao estado 55
+    simples_exp  ir ao estado 56
+    soma_exp     ir ao estado 57
+    termo        ir ao estado 58
+    fator        ir ao estado 59
+    ativacao     ir ao estado 60
 
 
-Estado 97
+Estado 95
 
    35 iter_decl: WHILE ABREPAR exp FECHAPAR • stmt
 
-    IF       deslocar, e ir ao estado 42
-    WHILE    deslocar, e ir ao estado 43
-    RETURN   deslocar, e ir ao estado 44
-    ID       deslocar, e ir ao estado 45
-    NUM      deslocar, e ir ao estado 46
-    ABREPAR  deslocar, e ir ao estado 47
-    PVIRG    deslocar, e ir ao estado 48
+    IF       deslocar, e ir ao estado 40
+    WHILE    deslocar, e ir ao estado 41
+    RETURN   deslocar, e ir ao estado 42
+    ID       deslocar, e ir ao estado 43
+    NUM      deslocar, e ir ao estado 44
+    ABREPAR  deslocar, e ir ao estado 45
+    PVIRG    deslocar, e ir ao estado 46
     ABRECH   deslocar, e ir ao estado 30
 
-    bloco_decl   ir ao estado 50
-    stmt         ir ao estado 105
-    exp_decl     ir ao estado 52
-    sel_decl     ir ao estado 53
-    iter_decl    ir ao estado 54
-    ret_decl     ir ao estado 55
-    exp          ir ao estado 56
-    var          ir ao estado 57
-    simples_exp  ir ao estado 58
-    soma_exp     ir ao estado 59
-    termo        ir ao estado 60
-    fator        ir ao estado 61
-    ativacao     ir ao estado 62
+    bloco_decl   ir ao estado 48
+    stmt         ir ao estado 102
+    exp_decl     ir ao estado 50
+    sel_decl     ir ao estado 51
+    iter_decl    ir ao estado 52
+    ret_decl     ir ao estado 53
+    exp          ir ao estado 54
+    var          ir ao estado 55
+    simples_exp  ir ao estado 56
+    soma_exp     ir ao estado 57
+    termo        ir ao estado 58
+    fator        ir ao estado 59
+    ativacao     ir ao estado 60
 
 
-Estado 98
+Estado 96
 
    42 var: ID $@5 ABRECOL exp • FECHACOL
 
-    FECHACOL  deslocar, e ir ao estado 106
+    FECHACOL  deslocar, e ir ao estado 103
 
 
-Estado 99
-
-   66 args: VAZIO •
-
-    $padrão  reduzir usando a regra 66 (args)
-
-
-Estado 100
+Estado 97
 
    68 arg_lista: param •
 
     $padrão  reduzir usando a regra 68 (arg_lista)
 
 
-Estado 101
+Estado 98
 
    69 arg_lista: exp •
 
     $padrão  reduzir usando a regra 69 (arg_lista)
 
 
-Estado 102
+Estado 99
 
    64 ativacao: ID $@6 ABREPAR args • FECHAPAR
 
-    FECHAPAR  deslocar, e ir ao estado 107
+    FECHAPAR  deslocar, e ir ao estado 104
 
 
-Estado 103
+Estado 100
 
    65 args: arg_lista •
    67 arg_lista: arg_lista • VIRG exp
 
-    VIRG  deslocar, e ir ao estado 108
+    VIRG  deslocar, e ir ao estado 105
 
     $padrão  reduzir usando a regra 65 (args)
 
 
-Estado 104
+Estado 101
 
    33 sel_decl: IF ABREPAR exp FECHAPAR stmt •
    34         | IF ABREPAR exp FECHAPAR stmt • ELSE stmt
 
-    ELSE  deslocar, e ir ao estado 109
+    ELSE  deslocar, e ir ao estado 106
 
     ELSE     [reduzir usando a regra 33 (sel_decl)]
     $padrão  reduzir usando a regra 33 (sel_decl)
 
 
-Estado 105
+Estado 102
 
    35 iter_decl: WHILE ABREPAR exp FECHAPAR stmt •
 
     $padrão  reduzir usando a regra 35 (iter_decl)
 
 
-Estado 106
+Estado 103
 
    42 var: ID $@5 ABRECOL exp FECHACOL •
 
     $padrão  reduzir usando a regra 42 (var)
 
 
-Estado 107
+Estado 104
 
    64 ativacao: ID $@6 ABREPAR args FECHAPAR •
 
     $padrão  reduzir usando a regra 64 (ativacao)
 
 
-Estado 108
+Estado 105
 
    67 arg_lista: arg_lista VIRG • exp
 
-    ID       deslocar, e ir ao estado 45
-    NUM      deslocar, e ir ao estado 46
-    ABREPAR  deslocar, e ir ao estado 47
+    ID       deslocar, e ir ao estado 43
+    NUM      deslocar, e ir ao estado 44
+    ABREPAR  deslocar, e ir ao estado 45
 
-    exp          ir ao estado 110
-    var          ir ao estado 57
-    simples_exp  ir ao estado 58
-    soma_exp     ir ao estado 59
-    termo        ir ao estado 60
-    fator        ir ao estado 61
-    ativacao     ir ao estado 62
+    exp          ir ao estado 107
+    var          ir ao estado 55
+    simples_exp  ir ao estado 56
+    soma_exp     ir ao estado 57
+    termo        ir ao estado 58
+    fator        ir ao estado 59
+    ativacao     ir ao estado 60
 
 
-Estado 109
+Estado 106
 
    34 sel_decl: IF ABREPAR exp FECHAPAR stmt ELSE • stmt
 
-    IF       deslocar, e ir ao estado 42
-    WHILE    deslocar, e ir ao estado 43
-    RETURN   deslocar, e ir ao estado 44
-    ID       deslocar, e ir ao estado 45
-    NUM      deslocar, e ir ao estado 46
-    ABREPAR  deslocar, e ir ao estado 47
-    PVIRG    deslocar, e ir ao estado 48
+    IF       deslocar, e ir ao estado 40
+    WHILE    deslocar, e ir ao estado 41
+    RETURN   deslocar, e ir ao estado 42
+    ID       deslocar, e ir ao estado 43
+    NUM      deslocar, e ir ao estado 44
+    ABREPAR  deslocar, e ir ao estado 45
+    PVIRG    deslocar, e ir ao estado 46
     ABRECH   deslocar, e ir ao estado 30
 
-    bloco_decl   ir ao estado 50
-    stmt         ir ao estado 111
-    exp_decl     ir ao estado 52
-    sel_decl     ir ao estado 53
-    iter_decl    ir ao estado 54
-    ret_decl     ir ao estado 55
-    exp          ir ao estado 56
-    var          ir ao estado 57
-    simples_exp  ir ao estado 58
-    soma_exp     ir ao estado 59
-    termo        ir ao estado 60
-    fator        ir ao estado 61
-    ativacao     ir ao estado 62
+    bloco_decl   ir ao estado 48
+    stmt         ir ao estado 108
+    exp_decl     ir ao estado 50
+    sel_decl     ir ao estado 51
+    iter_decl    ir ao estado 52
+    ret_decl     ir ao estado 53
+    exp          ir ao estado 54
+    var          ir ao estado 55
+    simples_exp  ir ao estado 56
+    soma_exp     ir ao estado 57
+    termo        ir ao estado 58
+    fator        ir ao estado 59
+    ativacao     ir ao estado 60
 
 
-Estado 110
+Estado 107
 
    67 arg_lista: arg_lista VIRG exp •
 
     $padrão  reduzir usando a regra 67 (arg_lista)
 
 
-Estado 111
+Estado 108
 
    34 sel_decl: IF ABREPAR exp FECHAPAR stmt ELSE stmt •
 

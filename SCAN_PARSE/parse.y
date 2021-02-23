@@ -2,8 +2,10 @@
 #define YYPARSER // Diferenciar inclusão do definitions.h
 #include "definitions.h"
 #define YYSTYPE NoArvore *
-#define YYDEBUG 1
-static char * nomeSalvo; // para uso em atribuições
+//#define YYDEBUG 1
+static char * nomeSalvo; // para uso geral em IDs
+static char * nomeVarSalvo; // para uso em atribuições
+static char * nomeFunc; // para uso em funções
 static int numLinhaSalva;
 static NoArvore* arvoreSalva; /* armazena árvore para retornar depois */
 static int yylex();
@@ -14,7 +16,7 @@ int yyerror(char *message);
 %token IF ELSE WHILE RETURN INT VOID
 %token ID NUM
 %token IGUAL IGUALIGUAL DIF MENOR MAIOR MENIGUAL MAIIGUAL MAIS MENOS VEZES DIV ABREPAR FECHAPAR PVIRG VIRG ABRECOL FECHACOL ABRECH FECHACH COMENT ENTER
-%token ERRO VAZIO FIMARQ ESPACO
+%token ERRO FIMARQ ESPACO
 
 %% // CFG (Gramática Livre de Contexto) da Linguagem C menos
 programa    : decl_lista
@@ -25,9 +27,9 @@ decl_lista  : decl_lista decl
                 // adiciona os nós como irmãos
                 // pela recursividade a esquerda
                   if(temp != NULL){
-                    while(temp->irmao != NULL)
-                        temp = temp->irmao;
-                    temp-> irmao = $2;
+                    while(temp->filho[0]->irmao != NULL)
+                        temp = temp->filho[0]->irmao;
+                    temp->filho[0]->irmao = $2;
                     $$ = $1;
                   }else{
                     $$ = $2;
@@ -38,50 +40,60 @@ decl_lista  : decl_lista decl
 decl        : var_decl {$$ = $1;}
             | fun_decl {$$ = $1;}
             ;
-var_decl    : tipo_esp ID { strcpy(nomeSalvo, tokenString);
+var_decl    : tipo_esp ID { nomeSalvo = copiaString(ID_nome);
                    numLinhaSalva = numlinha;
                  }
-              PVIRG {   $$ = novoNoDecl(D_var);
-                        $$->atrib.nome = nomeSalvo;
-                        $$->numlinha = numLinhaSalva;
-                        $$->tipo_c = $1->tipo_c;
+              PVIRG {   $$ = $1;
+                        YYSTYPE vd;
+                        vd = novoNoDecl(D_var);
+                        vd->atrib.nome = nomeSalvo;
+                        vd->numlinha = numLinhaSalva;
+                        $$->filho[0] = vd;
+
                     }
-            | tipo_esp ID { strcpy(nomeSalvo, tokenString);
+            | tipo_esp ID { nomeSalvo = copiaString(ID_nome);
                    numLinhaSalva = numlinha;
                  }
               ABRECOL NUM FECHACOL PVIRG 
-                            { YYSTYPE indice = novoNoExp(E_Num);
-                              indice->atrib.val = atoi(tokenString);
-                              $$ = novoNoDecl(D_var);
-                              $$->filho[0] = indice;
-                              $$->tipo_c = $1->tipo_c;
-                              $$->atrib.nome = nomeSalvo;
+                            { $$ = $1;
+                              YYSTYPE indice = novoNoExp(E_Num);
+                              indice->atrib.val = atoi(NUM_val);
+                              YYSTYPE vd;
+                              vd = novoNoDecl(D_var);
+                              vd->atrib.nome = nomeSalvo;
+                              vd->numlinha = numLinhaSalva;
+                              vd->filho[0] = indice;
+                              $$->filho[0] = vd; //nó de tipo fica como pai da declaracao
+
                             }
             ;
-tipo_esp    : INT { $$ = novoNoExp(E_Id); // apenas para passar o Tipo
+tipo_esp    : INT { $$ = novoNoDecl(D_Tipo); // cria o nó para o tipo
                     $$->tipo_c = Integer; 
                   } 
-            | VOID { $$ = novoNoExp(E_Id); // apenas para passar o Tipo
-                     $$->tipo_c = Void; 
+            | VOID { $$ = novoNoDecl(D_Tipo); // cria o nó para o tipo
+                    $$->tipo_c = Void; 
                    }
             ;
-fun_decl    : tipo_esp ID { strcpy(nomeSalvo, tokenString);
-                   numLinhaSalva = numlinha;
+fun_decl    : tipo_esp ID {
+                    nomeFunc = copiaString(ID_nome);
+                    numLinhaSalva = numlinha;
                  }
               ABREPAR params FECHAPAR bloco_decl
               {
-                $$ = novoNoDecl(D_func);
-                $$->filho[0] = $5;
-                $$->filho[1] = $7;
-                $$->atrib.nome = nomeSalvo;
-                $$->numlinha = numLinhaSalva;
-                $$->tipo_c = $1->tipo_c;
+                $$ = $1;
+                YYSTYPE fun;
+                fun = novoNoDecl(D_func);
+                fun->filho[0] = $5;
+                fun->filho[1] = $7;
+                fun->atrib.nome = nomeFunc;
+                fun->numlinha = numLinhaSalva;
+                $$->filho[0] = fun;
               }
             ;
 params      : param_lista { $$ = $1;
-                            $$->filho[0] = $1;
+                            //$$->filho[0] = $1;
                           }
-            | VOID {$$ = $1;}
+            | VOID { $$ = novoNoExp(E_Id); $$->atrib.nome = "void";}
             ;
 param_lista : param_lista VIRG param {  YYSTYPE temp = $1;
                                         // adiciona os nós como irmãos
@@ -97,31 +109,45 @@ param_lista : param_lista VIRG param {  YYSTYPE temp = $1;
                                      }
             | param {$$ = $1;}
             ;
-param       : tipo_esp ID { strcpy(nomeSalvo, tokenString);
+param       : tipo_esp ID { 
+                   $$ = $1;
+                   nomeSalvo = copiaString(ID_nome);
                    numLinhaSalva = numlinha;
-                   $$ = novoNoExp(E_Id);
-                   $$-> atrib.nome = nomeSalvo;
-                   $$-> numlinha = numLinhaSalva;
-                   $$-> tipo_c = $1->tipo_c;
+                   YYSTYPE par;
+                   par = novoNoExp(E_Id);
+                   par-> atrib.nome = nomeSalvo;
+                   par-> numlinha = numLinhaSalva;
+                   $$->filho[0] = par;
                  }
-            | tipo_esp ID { strcpy(nomeSalvo, tokenString);
+            | tipo_esp ID {nomeSalvo = copiaString(ID_nome);
                    numLinhaSalva = numlinha;
                  }
               ABRECOL FECHACOL
-              {    $$ = novoNoExp(E_Id);
-                   $$-> atrib.nome = nomeSalvo;
-                   $$-> atrib.eh_vetor = true; // sinaliza que é um vetor
-                   $$-> numlinha = numLinhaSalva;
-                   $$-> tipo_c = $1->tipo_c;
+              {    $$ = $1;
+                   YYSTYPE par;
+                   par = novoNoExp(E_Id);
+                   par-> atrib.nome = nomeSalvo;
+                   par-> numlinha = numLinhaSalva;
+                   $$->filho[0] = par;
               }
             ;
-bloco_decl  : ABRECH local_decl stmt_lista FECHACH { $2->irmao = $3;
-                                                   $$->filho[0] = $2; //nao tenho certeza
-                                                 }                                 
+bloco_decl  : ABRECH local_decl stmt_lista FECHACH { { YYSTYPE temp = $2;
+                                                    // adiciona os nós como irmãos
+                                                      if(temp != NULL){
+                                                        while(temp->irmao != NULL){
+                                                            temp = temp->irmao;
+                                                        }
+                                                        temp-> irmao = $3;
+                                                        $$ = $2;
+                                                      }else{
+                                                        $$ = $3;
+                                                      }
+                                                    }      
+                                                   } 
             ;                                     
 local_decl  : local_decl var_decl  { YYSTYPE temp = $1;
                                     // adiciona os nós como irmãos
-                                      if(temp != NULL){
+                                      if(temp != NULL && temp->atrib.nome != "sem_local_decl" ){
                                         while(temp->irmao != NULL){
                                             temp = temp->irmao;
                                         }
@@ -131,8 +157,10 @@ local_decl  : local_decl var_decl  { YYSTYPE temp = $1;
                                         $$ = $2;
                                       }
                                     }   
-            | VAZIO {   $$ = novoNoExp(E_Id);
-                        $$-> atrib.nome = "";
+            |/*vazio*/{ 
+                        //$$ = novoNoExp(E_Id);
+                        //$$-> atrib.nome = "sem_local_decl";
+                        $$ = NULL;
                     }
             ;
 stmt_lista  : stmt_lista stmt { YYSTYPE temp = $1;
@@ -147,7 +175,11 @@ stmt_lista  : stmt_lista stmt { YYSTYPE temp = $1;
                                         $$ = $2;
                                       }
                                     }   
-            | VAZIO {$$ = $1;}
+            |/*vazio*/{ 
+                        //$$ = novoNoExp(E_Id);
+                        //$$-> atrib.nome = "sem_stmt_lista";
+                        $$ = NULL;
+                    }
             ;
 stmt        : exp_decl {$$ = $1;}
             | bloco_decl {$$ = $1;}
@@ -156,7 +188,11 @@ stmt        : exp_decl {$$ = $1;}
             | ret_decl {$$ = $1;}
             ;
 exp_decl    : exp PVIRG {$$ = $1;}
-            | PVIRG {$$ = NULL;}
+            | PVIRG { 
+                        $$ = novoNoExp(E_Id);
+                        $$->atrib.nome = "expr_vazia";
+                        //$$ = NULL;
+                    }
             ;
 sel_decl    : IF ABREPAR exp FECHAPAR stmt
                 { $$ = novoNoStmt(S_If);
@@ -176,30 +212,35 @@ iter_decl   : WHILE ABREPAR exp FECHAPAR stmt
                   $$->filho[1] = $5;
                 }
             ;
-ret_decl    : RETURN PVIRG {$$ = NULL;}
-            | RETURN exp PVIRG {$$ = $2;}
+ret_decl    : RETURN PVIRG { 
+                        $$ = novoNoStmt(S_Retorno);
+                    }    
+            | RETURN exp PVIRG {$$ = novoNoStmt(S_Retorno);
+                                $$->filho[0] = $2;
+                                }
             ;
 exp         : var IGUAL exp
-                { $$ = novoNoExp(E_Op);
+                { $$ = novoNoStmt(S_Atrib);
                   $$->filho[0] = $1;
                   $$->filho[1] = $3;
                   $$->atrib.op = IGUAL; //IGUAL
                 }
             | simples_exp {$$ = $1;}
+
             ;
-var         : ID { strcpy(nomeSalvo, tokenString);
+var         : ID { nomeSalvo = copiaString(ID_nome);
                    numLinhaSalva = numlinha;
                    $$ = novoNoExp(E_Id);
                    $$->atrib.nome = nomeSalvo;
                    $$->numlinha = numLinhaSalva;
-                   $$->atrib.eh_vetor = true;
                  }
-            | ID { strcpy(nomeSalvo, tokenString);
+            | ID { nomeVarSalvo = copiaString(ID_nome);
                    numLinhaSalva = numlinha;
                  }
             ABRECOL exp FECHACOL
-                 { $$ = novoNoExp(E_Id);
-                   $$->atrib.nome = nomeSalvo;
+                 {
+                   $$ = novoNoExp(E_Id);
+                   $$->atrib.nome = nomeVarSalvo;
                    $$->numlinha = numLinhaSalva;
                    $$->filho[0] = $4;
                  }
@@ -246,21 +287,25 @@ fator       : ABREPAR exp FECHAPAR {$$ = $1;}
             | var {$$ = $1;}
             | ativacao {$$ = $1;}
             | NUM { $$ = novoNoExp(E_Num);
-                    $$->atrib.val = atoi(tokenString);
+                    $$->atrib.val = atoi(NUM_val);
                   }
             ;
-ativacao    : ID { strcpy(nomeSalvo, tokenString);
+ativacao    : ID { nomeFunc = copiaString(ID_nome);
                    numLinhaSalva = numlinha;
                  }
             ABREPAR args FECHAPAR
-                 { $$ = novoNoExp(E_Id);
+                 { $$ = novoNoStmt(S_Chamada);
                    $$->filho[0] = $4;
-                   $$->atrib.nome = nomeSalvo;
+                   $$->atrib.nome = nomeFunc;
                    $$->numlinha = numLinhaSalva;
                  }
             ;
 args        : arg_lista {$$ = $1;}
-            | VAZIO {/*return NULL;*/return 0;}
+            |/*vazio*/{ 
+                        //$$ = novoNoExp(E_Id);
+                        //$$-> atrib.nome = "sem_args";
+                        $$ = NULL;
+                    }
             ;
 arg_lista   : arg_lista VIRG exp {  YYSTYPE temp = $1;
                                     // adiciona os nós como irmãos
@@ -299,8 +344,8 @@ static int yylex(void)
 
 NoArvore * parse(void)
 {
-  extern int yydebug;
-  yydebug = 1;
+  //extern int yydebug;
+ // yydebug = 1;
   yyparse();
   return arvoreSalva;
 }
