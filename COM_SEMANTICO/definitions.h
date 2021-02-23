@@ -71,4 +71,18 @@ NoArvore * novoNoStmt(TipoStmt tipo);
 NoArvore * novoNoExp(TipoExp tipo);
 
 
+/* Procedimento insere_tab_sim insere o numero das linhas 
+   e os locais de memoria na tabela de simbolos
+*/
+void insere_tab_sim( char * nome, int numlinha, int loc, char * escopo, Tipo tipo);
 
+/* Função consulta_tab_sim retorna a localização
+ * de memoria de uma variavel ou -1 caso contrario
+ */
+int consulta_tab_sim ( char * nome );
+
+/* Procedimento imprimeTabSim imprime
+*   uma lista formatada do conteudo da tabela de simbolos
+*   para o arquivo listing
+*/
+void imprimeTabSim(FILE * listing);
