@@ -29,78 +29,86 @@ typedef struct listaDeLinhas{
     struct listaDeLinhas * prox;
 } * ListaDeLinhas;
 
+//ADICIONAR MAIS UM CAMPO PARA SALVAR O ESCOPO
+//SALVAR O TIPO DA VARIAVEL
+
 // Lista de Blocos (unidades básicas da Tabela Hash)
 typedef struct listaDeBlocos
    { char * nome;
-     LineList linhas;
+     char * escopo;
+     Tipo tipo; 
+     ListaDeLinhas linhas;
      int numbloco ; // utilizado ao criar
      struct ListaDeBlocos* prox;
    } * ListaDeBlocos;
 
 //Tabela Hash
-static BucketList hashTable[SIZE];
+static ListaDeBlocos Tabela_hash[SIZE];
 
-/* Procedure st_insert inserts line numbers and
- * memory locations into the symbol table
- * loc = memory location is inserted only the
- * first time, otherwise ignored
- */
-void st_insert( char * name, int lineno, int loc )
-{ int h = hash(name);
-  BucketList l =  hashTable[h];
-  while ((l != NULL) && (strcmp(name,l->name) != 0))
-    l = l->next;
-  if (l == NULL) /* variable not yet in table */
-  { l = (BucketList) malloc(sizeof(struct BucketListRec));
-    l->name = name;
-    l->lines = (LineList) malloc(sizeof(struct LineListRec));
-    l->lines->lineno = lineno;
-    l->memloc = loc;
-    l->lines->next = NULL;
-    l->next = hashTable[h];
-    hashTable[h] = l; }
-  else /* found in table, so just add line number */
-  { LineList t = l->lines;
-    while (t->next != NULL) t = t->next;
-    t->next = (LineList) malloc(sizeof(struct LineListRec));
-    t->next->lineno = lineno;
-    t->next->next = NULL;
+
+/* Procedimento insere_tab_sim insere o numero das linhas 
+   e os locais de memoria na tabela de simbolos
+*/
+
+void insere_tab_sim( char * nome, int numlinha, int loc, char * escopo, Tipo tipo)
+{ int h = hash(nome);
+  ListaDeBlocos l =  Tabela_hash[h];
+  while ((l != NULL) && (strcmp(nome,l->nome) != 0))
+    l = l->prox;
+  if (l == NULL) /* variavel ainda nao esta na tabela */
+  { l = (ListaDeBlocos) malloc(sizeof(struct listaDeBlocos));
+    l->nome = nome;
+    l->linhas = (ListaDeLinhas) malloc(sizeof(struct listaDeLinhas));
+    l->linhas->numlinha = numlinha;
+    l->numbloco = loc;
+    l->escopo = escopo;
+    l->tipo = tipo;
+    l->linhas->prox = NULL;
+    l->prox = Tabela_hash[h];
+    Tabela_hash[h] = l; }
+  else /* encontrado na tabela, logo, apenas adicionar o numero da linha */
+  { ListaDeLinhas t = l->linhas;
+    while (t->prox != NULL) t = t->prox;
+    t->prox = (ListaDeLinhas) malloc(sizeof(struct listaDeLinhas));
+    t->prox->numlinha = numlinha;
+    t->prox->prox = NULL;
   }
-} /* st_insert */
+} /* insere_tab_sim */
 
-/* Function st_lookup returns the memory 
- * location of a variable or -1 if not found
+/* Função consulta_tab_sim retorna a localização
+ * de memoria de uma variavel ou -1 caso contrario
  */
-int st_lookup ( char * name )
-{ int h = hash(name);
-  BucketList l =  hashTable[h];
-  while ((l != NULL) && (strcmp(name,l->name) != 0))
-    l = l->next;
+int consulta_tab_sim ( char * nome )
+{ int h = hash(nome);
+  ListaDeBlocos l =  Tabela_hash[h];
+  while ((l != NULL) && (strcmp(nome,l->nome) != 0))
+    l = l->prox;
   if (l == NULL) return -1;
-  else return l->memloc;
+  else return l->numbloco;
 }
 
-/* Procedure printSymTab prints a formatted 
- * listing of the symbol table contents 
- * to the listing file
- */
-void printSymTab(FILE * listing)
+/* Procedimento imprimeTabSim imprime
+*   uma lista formatada do conteudo da tabela de simbolos
+*   para o arquivo listing
+*/
+
+void imprimeTabSim(FILE * listing)
 { int i;
-  fprintf(listing,"Variable Name  Location   Line Numbers\n");
-  fprintf(listing,"-------------  --------   ------------\n");
+  fprintf(listing,"Nome da Variavel  Localizacao   Linhas Numero\n");
+  fprintf(listing,"----------------  -----------   -------------\n");
   for (i=0;i<SIZE;++i)
-  { if (hashTable[i] != NULL)
-    { BucketList l = hashTable[i];
+  { if (Tabela_hash[i] != NULL)
+    { ListaDeBlocos l = Tabela_hash[i];
       while (l != NULL)
-      { LineList t = l->lines;
-        fprintf(listing,"%-14s ",l->name);
-        fprintf(listing,"%-8d  ",l->memloc);
+      { ListaDeLinhas t = l->linhas;
+        fprintf(listing,"%-14s ",l->nome);
+        fprintf(listing,"%-8d  ",l->numbloco);
         while (t != NULL)
-        { fprintf(listing,"%4d ",t->lineno);
-          t = t->next;
+        { fprintf(listing,"%4d ",t->numlinha);
+          t = t->prox;
         }
         fprintf(listing,"\n");
-        l = l->next;
+        l = l->prox;
       }
     }
   }
