@@ -36,7 +36,7 @@ typedef int Token; // yacc define automaticamente os valores inteiros dos Tokens
 
 typedef enum {TDecl,TExp,TStmt} TipoNo;
 typedef enum {D_var, D_func, D_Tipo} TipoDecl;
-typedef enum {S_If,S_While,S_Params,S_Atrib,S_Retorno,S_Chamada} TipoStmt;
+typedef enum {S_If,S_While,S_Atrib,S_Retorno,S_Chamada} TipoStmt;
 typedef enum {E_Op,E_Num,E_Id} TipoExp;
 typedef enum {Void,Integer} Tipo; // Usado para verificação de tipo
 

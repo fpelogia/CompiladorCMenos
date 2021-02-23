@@ -101,9 +101,6 @@ void imprimeArvore( NoArvore * arv )
         case S_While:
           fprintf(stdout,"While\n");
           break;
-        case S_Params:
-          fprintf(stdout,"Params\n");
-          break;
         case S_Atrib:
           fprintf(stdout,"Atribuição\n");
           break;

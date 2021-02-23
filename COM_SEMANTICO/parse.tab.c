@@ -2012,9 +2012,9 @@ yyreturn:
 
 int yyerror(char * message){
     if(yychar == ID || yychar == NUM){
-        fprintf(stdout,"Erro sintático %s  na linha: %d\n", nome_token(yychar), numlinha);
+        fprintf(stdout,"Erro Sintático %s  na linha: %d\n", nome_token(yychar), numlinha);
     }else{
-        fprintf(stdout,"Erro sintático %s (%s)  na linha: %d\n", nome_token(yychar), yytext, numlinha);
+        fprintf(stdout,"Erro Sintático %s (%s)  na linha: %d\n", nome_token(yychar), yytext, numlinha);
     }
     //erro = true;
     return 0;
