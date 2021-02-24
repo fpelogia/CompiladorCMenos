@@ -80,7 +80,7 @@ void insere_tab_sim( char * nome, int numlinha, int loc, char * escopo, Tipo tip
 /* Função consulta_tab_sim retorna a localização
  * de memoria de uma variavel ou -1 caso não a encontre
  */
-int consulta_tab_sim ( char * nome );
+int consulta_tab_sim ( char * nome , char * escopo);
 
 /* Procedimento imprimeTabSim imprime
 *   uma lista formatada do conteudo da tabela de simbolos
