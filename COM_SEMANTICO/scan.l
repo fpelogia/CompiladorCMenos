@@ -50,7 +50,7 @@ ENTER \n
 {ENTER} { numlinha++;}
 .   { printf("Erro Léxico: %s na linha %d\n",yytext,numlinha); return ERRO;}
         
-<<EOF>> { return YYEOF;}
+<<EOF>> { return EOF;}
 %%
 
 Token retornaToken(void){

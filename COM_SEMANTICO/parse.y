@@ -8,6 +8,7 @@ static char * nomeVarSalvo; // para uso em atribuições
 static char * nomeFuncDecl; // para uso em declaracao de funções
 static char * nomeFunc; // para uso em funções
 static int numLinhaSalva;
+static int numLinhaSalvaF;
 static NoArvore* arvoreSalva; /* armazena árvore para retornar depois */
 static int yylex();
 int yyerror(char *message);
@@ -77,7 +78,7 @@ tipo_esp    : INT { $$ = novoNoDecl(D_Tipo); // cria o nó para o tipo
             ;
 fun_decl    : tipo_esp ID {
                     nomeFuncDecl = copiaString(ID_nome);
-                    numLinhaSalva = numlinha;
+                    numLinhaSalvaF = numlinha;
                  }
               ABREPAR params FECHAPAR bloco_decl
               {
@@ -87,7 +88,7 @@ fun_decl    : tipo_esp ID {
                 fun->filho[0] = $5;
                 fun->filho[1] = $7;
                 fun->atrib.nome = nomeFuncDecl;
-                fun->numlinha = numLinhaSalva;
+                fun->numlinha = numLinhaSalvaF;
                 $$->filho[0] = fun;
                 fun->tipo_c = $1->tipo_c;
               }

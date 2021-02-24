@@ -916,7 +916,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
 #line 53 "scan.l"
-{ return YYEOF;}
+{ return EOF;}
 	YY_BREAK
 case 30:
 YY_RULE_SETUP

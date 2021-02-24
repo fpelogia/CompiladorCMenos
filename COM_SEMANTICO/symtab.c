@@ -94,15 +94,15 @@ int consulta_tab_sim ( char * nome )
 
 void imprimeTabSim(FILE * listing)
 { int i;
-  fprintf(listing,"Nome da Variavel  Num. Bloco    Linhas Numero\n");
-  fprintf(listing,"----------------  -----------   -------------\n");
+  fprintf(listing," | Nome da Variavel:   Escopo:    Referenciado nas Linhas:\n");
+  fprintf(listing," | ----------------  -----------   ---------------------------\n");
   for (i=0;i<SIZE;++i)
   { if (Tabela_hash[i] != NULL)
     { ListaDeBlocos l = Tabela_hash[i];
       while (l != NULL)
       { ListaDeLinhas t = l->linhas;
-        fprintf(listing,"%-14s ",l->nome);
-        fprintf(listing,"%-8d  ",l->numbloco);
+        fprintf(listing," |   %-13s ",l->nome);
+        fprintf(listing,"|  %-11s|",l->escopo);
         while (t != NULL)
         { fprintf(listing,"%4d ",t->numlinha);
           t = t->prox;
@@ -112,4 +112,5 @@ void imprimeTabSim(FILE * listing)
       }
     }
   }
+  fprintf(listing," ------------------------------------------------------------\n");
 } /* printSymTab */

@@ -12,6 +12,6 @@ void main(void)
 {   int x;
     int y;
     int z;
-    x = 2; y = 3;
+    x = input(); y = 3;
     z = gcd(x,y);
 }

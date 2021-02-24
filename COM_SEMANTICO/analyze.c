@@ -2,6 +2,7 @@
 
 //contador para os endereços na lista de blocos
 static int location = 0;
+static bool possuiMain = false;
 static char* escopo = "global";
 bool Erro;
 
@@ -13,6 +14,13 @@ static void insereNo( NoArvore * t){
         case TDecl:
             switch (t->tipo.decl){ 
                 case D_func:
+                    if(strcmp(t->atrib.nome,"main")==0){
+                        possuiMain = true;
+                    }
+                    if(strcmp(t->atrib.nome,"input")==0 || strcmp(t->atrib.nome,"output")==0){
+                        Erro = 1;
+                        printf("Erro Semântico na linha %d\n\tFunção %s é reservada!\n",t->numlinha,t->atrib.nome);
+                    }
                     if (consulta_tab_sim(t->atrib.nome) == -1){
                         insere_tab_sim(t->atrib.nome,t->numlinha,location++,"global",t->tipo_c,1);
                         escopo = t->atrib.nome;// escopo da função
@@ -36,11 +44,14 @@ static void insereNo( NoArvore * t){
         case TStmt:
             switch (t->tipo.stmt){ 
                 case S_Chamada:
-                    if (consulta_tab_sim(t->atrib.nome) == -1){
-                        // VERIFICAR TAMBÉM FILTRANDO PELO ESCOPO
-                        // TALVEZ ESCREVER FUNÇÃO QUE BUSCA PELO ESCOPO
+
+                    if(strcmp(t->atrib.nome,"input")==0){
+                        //input
+                    }else if(strcmp(t->atrib.nome,"output")==0){
+                        //output
+                    }else if (consulta_tab_sim(t->atrib.nome) == -1){
                         Erro = 1;
-                        printf("Erro Semântico na linha %d\n\tFunção %s não declarada no escopo local!\n",t->numlinha,t->atrib.nome);
+                        printf("Erro Semântico na linha %d\n\tFunção %s não declarada!\n",t->numlinha,t->atrib.nome);
                     }else
                         insere_tab_sim(t->atrib.nome,t->numlinha,0,escopo,Void,1);//ultimos 4 parâmetros não são utilizados
                     break;
@@ -71,28 +82,28 @@ static void insereNo( NoArvore * t){
 
 static void typeError(NoArvore * t, char * message){
     if(t->atrib.nome)
-        fprintf(stdout,"Erro sintático:%s na linha %d: %s\n", t->atrib.nome, t->numlinha);
+        fprintf(stdout,"Erro sintático:%s na linha %d:\n\t%s\n", t->atrib.nome, t->numlinha, message);
     else
-        fprintf(stdout,"Erro sintático na linha %d: %s\n", t->numlinha);
+        fprintf(stdout,"Erro sintático na linha %d:\n\t%s\n", t->numlinha, message);
   //Erro = true;
 }
-/*
+
 // Função que faz checagem de tipo em um dado nó
 static void checaNo(NoArvore * t){
     switch (t->tipo_de_no){ 
         case TExp:
             switch (t->tipo.exp){
                 case E_Op:
-                    if ((t->child[0]->type != Integer) ||(t->child[1]->type != Integer))
+                    if ((t->filho[0]->tipo_c != Integer) ||(t->filho[1]->tipo_c != Integer))
                         typeError(t,"Operação aplicada entre não inteiros!");
-                    if ((t->attr.op == EQ) || (t->attr.op == LT))
-                        t->type = Boolean;
+                    if ((t->atrib.op == IGUALIGUAL) || (t->atrib.op == DIF)|| (t->atrib.op == MENOR)|| (t->atrib.op == MENIGUAL)|| (t->atrib.op == MAIOR)|| (t->atrib.op == MAIIGUAL))
+                        t->tipo_c = Boolean;
                     else
-                        t->type = Integer;
+                        t->tipo_c = Integer;
                     break;
-                case ConstK:
-                case IdK:
-                    t->type = Integer;
+                case E_Num:
+                case E_Id:
+                    t->tipo_c = Integer;
                     break;
                 default:
                     break;
@@ -100,21 +111,21 @@ static void checaNo(NoArvore * t){
             break;
         case TStmt:
             switch (t->tipo.stmt){
-                case IfK:
-                    if (t->child[0]->type == Integer)
-                        typeError(t->child[0],"if test is not Boolean");
+                case S_If:
+                    if (t->filho[0]->tipo_c == Integer)
+                        typeError(t->filho[0],"Condicional do If não Booleano");
                     break;
-                case AssignK:
-                    if (t->child[0]->type != Integer)
-                        typeError(t->child[0],"assignment of non-integer value");
+                case S_Atrib:
+                    if (t->filho[0]->tipo_c != Integer)
+                        typeError(t->filho[0],"Atribuição de valor não inteiro");
                     break;
-                case WriteK:
-                    if (t->child[0]->type != Integer)
-                        typeError(t->child[0],"write of non-integer value");
-                    break;
-                case RepeatK:
-                    if (t->child[1]->type == Integer)
-                        typeError(t->child[1],"repeat test is not Boolean");
+               // case WriteK:
+               //     if (t->filho[0]->tipo_c != Integer)
+               //         typeError(t->filho[0],"write of non-integer value");
+               //     break;
+                case S_While:
+                    if (t->filho[1]->tipo_c == Integer)
+                        typeError(t->filho[1],"Condicional do While não Booleano");
                     break;
                 default:
                     break;
@@ -123,7 +134,7 @@ static void checaNo(NoArvore * t){
         default:
             break;
       }
-}*/
+}
 // Faz percurso "pré-ordem" em uma árvore inserindo seus
 // nós na tabela de símbolos
 static void percorre(NoArvore * arv){ 
@@ -133,7 +144,7 @@ static void percorre(NoArvore * arv){
         for (i=0; i < MAXFILHOS; i++){
             percorre(arv->filho[i]);//processa filhos da esquerda para a direita
         }
-        //checaNo(t);
+        checaNo(arv);
         percorre(arv->irmao);
       }
 }
@@ -146,6 +157,10 @@ void checaTipos(NoArvore * arv){
 //Função que monta a tabela de símbolos a partir da árvore sintática
 void montaTabSim(NoArvore * arv){ 
     percorre(arv);
-    fprintf(stdout,"\nTabela de Símbolos:\n\n");
-    imprimeTabSim(stdout);
+    if(!possuiMain){
+        fprintf(stdout,"\nErro Semântico: Função principal (main) não declarada\n");
+    }else{
+        fprintf(stdout,"\nTabela de Símbolos:\n\n");
+        imprimeTabSim(stdout);
+    }
 }
