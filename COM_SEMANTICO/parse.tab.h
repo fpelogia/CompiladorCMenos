@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.7.3.  */
+/* A Bison parser, made by GNU Bison 3.5.1.  */
 
 /* Bison interface for Yacc-like parsers in C
 
@@ -31,9 +31,8 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-/* DO NOT RELY ON FEATURES THAT ARE NOT DOCUMENTED in the manual,
-   especially those whose name start with YY_ or yy_.  They are
-   private implementation details that can be changed or removed.  */
+/* Undocumented macros, especially those whose name start with YY_,
+   are private implementation details.  Do not rely on them.  */
 
 #ifndef YY_YY_PARSE_TAB_H_INCLUDED
 # define YY_YY_PARSE_TAB_H_INCLUDED
@@ -45,49 +44,44 @@
 extern int yydebug;
 #endif
 
-/* Token kinds.  */
+/* Token type.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
   enum yytokentype
   {
-    YYEMPTY = -2,
-    YYEOF = 0,                     /* "end of file"  */
-    YYerror = 256,                 /* error  */
-    YYUNDEF = 257,                 /* "invalid token"  */
-    IF = 258,                      /* IF  */
-    ELSE = 259,                    /* ELSE  */
-    WHILE = 260,                   /* WHILE  */
-    RETURN = 261,                  /* RETURN  */
-    INT = 262,                     /* INT  */
-    VOID = 263,                    /* VOID  */
-    ID = 264,                      /* ID  */
-    NUM = 265,                     /* NUM  */
-    IGUAL = 266,                   /* IGUAL  */
-    IGUALIGUAL = 267,              /* IGUALIGUAL  */
-    DIF = 268,                     /* DIF  */
-    MENOR = 269,                   /* MENOR  */
-    MAIOR = 270,                   /* MAIOR  */
-    MENIGUAL = 271,                /* MENIGUAL  */
-    MAIIGUAL = 272,                /* MAIIGUAL  */
-    MAIS = 273,                    /* MAIS  */
-    MENOS = 274,                   /* MENOS  */
-    VEZES = 275,                   /* VEZES  */
-    DIV = 276,                     /* DIV  */
-    ABREPAR = 277,                 /* ABREPAR  */
-    FECHAPAR = 278,                /* FECHAPAR  */
-    PVIRG = 279,                   /* PVIRG  */
-    VIRG = 280,                    /* VIRG  */
-    ABRECOL = 281,                 /* ABRECOL  */
-    FECHACOL = 282,                /* FECHACOL  */
-    ABRECH = 283,                  /* ABRECH  */
-    FECHACH = 284,                 /* FECHACH  */
-    COMENT = 285,                  /* COMENT  */
-    ENTER = 286,                   /* ENTER  */
-    ERRO = 287,                    /* ERRO  */
-    FIMARQ = 288,                  /* FIMARQ  */
-    ESPACO = 289                   /* ESPACO  */
+    IF = 258,
+    ELSE = 259,
+    WHILE = 260,
+    RETURN = 261,
+    INT = 262,
+    VOID = 263,
+    ID = 264,
+    NUM = 265,
+    IGUAL = 266,
+    IGUALIGUAL = 267,
+    DIF = 268,
+    MENOR = 269,
+    MAIOR = 270,
+    MENIGUAL = 271,
+    MAIIGUAL = 272,
+    MAIS = 273,
+    MENOS = 274,
+    VEZES = 275,
+    DIV = 276,
+    ABREPAR = 277,
+    FECHAPAR = 278,
+    PVIRG = 279,
+    VIRG = 280,
+    ABRECOL = 281,
+    FECHACOL = 282,
+    ABRECH = 283,
+    FECHACH = 284,
+    COMENT = 285,
+    ENTER = 286,
+    ERRO = 287,
+    FIMARQ = 288,
+    ESPACO = 289
   };
-  typedef enum yytokentype yytoken_kind_t;
 #endif
 
 /* Value type.  */

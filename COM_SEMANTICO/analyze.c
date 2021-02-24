@@ -21,8 +21,8 @@ static void insereNo( NoArvore * t){
                         printf("Erro Semântico na linha %d\n\tFunção %s já declarada!\n",t->numlinha,t->atrib.nome);
                     }
                     break;
-                case D_var:
-                    if (consulta_tab_sim(t->atrib.nome) == -1)
+                case D_var: // verificar escopo
+                    if (consulta_tab_sim(t->atrib.nome, escopo) == -1)
                         insere_tab_sim(t->atrib.nome,t->numlinha,location++,escopo,t->tipo_c,0);
                     else{
                         Erro = 1;
@@ -50,7 +50,7 @@ static void insereNo( NoArvore * t){
             break;
         case TExp:
             switch (t->tipo.exp){
-                case E_Id:
+                case E_Id: // verificar escopo
                     if(strcmp(t->atrib.nome,"void")!=0){
                         if (consulta_tab_sim(t->atrib.nome) == -1){
                             Erro = 1;
@@ -71,9 +71,9 @@ static void insereNo( NoArvore * t){
 
 static void typeError(NoArvore * t, char * message){
     if(t->atrib.nome)
-        fprintf(stdout,"Erro sintático:%s na linha %d: %s\n", t->atrib.nome, t->numlinha);
+        fprintf(stdout,"Erro sintático na linha %d:\n\t%s\n", t->numlinha, t->atrib.nome);
     else
-        fprintf(stdout,"Erro sintático na linha %d: %s\n", t->numlinha);
+        fprintf(stdout,"Erro sintático na linha %d:\n\t\n", t->numlinha);
   //Erro = true;
 }
 /*

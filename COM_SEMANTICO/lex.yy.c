@@ -1,5 +1,5 @@
 
-#line 2 "lex.yy.c"
+#line 3 "lex.yy.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -481,8 +481,8 @@ char *yytext;
 char lexema[MAX_TAM_TOKEN+1];
 char ID_nome[MAX_TAM_TOKEN + 1];
 char NUM_val[MAX_TAM_TOKEN + 1];
-#line 484 "lex.yy.c"
 #line 485 "lex.yy.c"
+#line 486 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -701,7 +701,7 @@ YY_DECL
 	{
 #line 12 "scan.l"
 
-#line 704 "lex.yy.c"
+#line 705 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -916,14 +916,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
 #line 53 "scan.l"
-{ return YYEOF;}
+{ return EOF;}
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
 #line 54 "scan.l"
 ECHO;
 	YY_BREAK
-#line 926 "lex.yy.c"
+#line 927 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
