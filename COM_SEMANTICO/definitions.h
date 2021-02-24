@@ -21,6 +21,7 @@ typedef enum{
 */
 
 extern int yylineno;
+extern bool Erro;
 extern char* yytext;
 extern bool erro;
 extern int numlinha;
@@ -38,7 +39,7 @@ typedef enum {TDecl,TExp,TStmt} TipoNo;
 typedef enum {D_var, D_func, D_Tipo} TipoDecl;
 typedef enum {S_If,S_While,S_Atrib,S_Retorno,S_Chamada} TipoStmt;
 typedef enum {E_Op,E_Num,E_Id} TipoExp;
-typedef enum {Void,Integer} Tipo; // Usado para verificação de tipo
+typedef enum {Void,Integer,Boolean} Tipo; // Usado para verificação de tipo
 
 #define MAXFILHOS 3
 
@@ -74,10 +75,10 @@ NoArvore * novoNoExp(TipoExp tipo);
 /* Procedimento insere_tab_sim insere o numero das linhas 
    e os locais de memoria na tabela de simbolos
 */
-void insere_tab_sim( char * nome, int numlinha, int loc, char * escopo, Tipo tipo);
+void insere_tab_sim( char * nome, int numlinha, int loc, char * escopo, Tipo tipo, int eh_funcao);
 
 /* Função consulta_tab_sim retorna a localização
- * de memoria de uma variavel ou -1 caso contrario
+ * de memoria de uma variavel ou -1 caso não a encontre
  */
 int consulta_tab_sim ( char * nome );
 
@@ -86,3 +87,9 @@ int consulta_tab_sim ( char * nome );
 *   para o arquivo listing
 */
 void imprimeTabSim(FILE * listing);
+
+//Função que monta a tabela de símbolos a partir da árvore sintática
+void montaTabSim(NoArvore * arv); 
+
+// Função que faz a checagem de tipos a partir da árvore sintática
+void checaTipos(NoArvore * arv);

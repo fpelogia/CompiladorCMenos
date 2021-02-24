@@ -21,6 +21,7 @@ int main(){
     printf("1)nomefunc: %s\n",no->atrib.nome);*/
     printf("\n\nÁrvore Sintática:\n");
     imprimeArvore(arvoreSintatica);
+    montaTabSim(arvoreSintatica);
 
     fclose(arq_cod_fonte);
     return 0;

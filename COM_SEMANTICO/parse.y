@@ -5,6 +5,7 @@
 //#define YYDEBUG 1
 static char * nomeSalvo; // para uso geral em IDs
 static char * nomeVarSalvo; // para uso em atribuições
+static char * nomeFuncDecl; // para uso em declaracao de funções
 static char * nomeFunc; // para uso em funções
 static int numLinhaSalva;
 static NoArvore* arvoreSalva; /* armazena árvore para retornar depois */
@@ -49,7 +50,7 @@ var_decl    : tipo_esp ID { nomeSalvo = copiaString(ID_nome);
                         vd->atrib.nome = nomeSalvo;
                         vd->numlinha = numLinhaSalva;
                         $$->filho[0] = vd;
-
+                        vd->tipo_c = $1->tipo_c;
                     }
             | tipo_esp ID { nomeSalvo = copiaString(ID_nome);
                    numLinhaSalva = numlinha;
@@ -64,7 +65,7 @@ var_decl    : tipo_esp ID { nomeSalvo = copiaString(ID_nome);
                               vd->numlinha = numLinhaSalva;
                               vd->filho[0] = indice;
                               $$->filho[0] = vd; //nó de tipo fica como pai da declaracao
-
+                              vd->tipo_c = $1->tipo_c;
                             }
             ;
 tipo_esp    : INT { $$ = novoNoDecl(D_Tipo); // cria o nó para o tipo
@@ -75,7 +76,7 @@ tipo_esp    : INT { $$ = novoNoDecl(D_Tipo); // cria o nó para o tipo
                    }
             ;
 fun_decl    : tipo_esp ID {
-                    nomeFunc = copiaString(ID_nome);
+                    nomeFuncDecl = copiaString(ID_nome);
                     numLinhaSalva = numlinha;
                  }
               ABREPAR params FECHAPAR bloco_decl
@@ -85,9 +86,10 @@ fun_decl    : tipo_esp ID {
                 fun = novoNoDecl(D_func);
                 fun->filho[0] = $5;
                 fun->filho[1] = $7;
-                fun->atrib.nome = nomeFunc;
+                fun->atrib.nome = nomeFuncDecl;
                 fun->numlinha = numLinhaSalva;
                 $$->filho[0] = fun;
+                fun->tipo_c = $1->tipo_c;
               }
             ;
 params      : param_lista { $$ = $1;
@@ -114,9 +116,10 @@ param       : tipo_esp ID {
                    nomeSalvo = copiaString(ID_nome);
                    numLinhaSalva = numlinha;
                    YYSTYPE par;
-                   par = novoNoExp(E_Id);
+                   par = novoNoDecl(D_var); // cuidado com isso
                    par-> atrib.nome = nomeSalvo;
                    par-> numlinha = numLinhaSalva;
+                   par-> tipo_c = $1->tipo_c;
                    $$->filho[0] = par;
                  }
             | tipo_esp ID {nomeSalvo = copiaString(ID_nome);
@@ -125,9 +128,10 @@ param       : tipo_esp ID {
               ABRECOL FECHACOL
               {    $$ = $1;
                    YYSTYPE par;
-                   par = novoNoExp(E_Id);
+                   par = novoNoDecl(D_var);
                    par-> atrib.nome = nomeSalvo;
                    par-> numlinha = numLinhaSalva;
+                   par-> tipo_c = $1->tipo_c;
                    $$->filho[0] = par;
               }
             ;
@@ -189,9 +193,9 @@ stmt        : exp_decl {$$ = $1;}
             ;
 exp_decl    : exp PVIRG {$$ = $1;}
             | PVIRG { 
-                        $$ = novoNoExp(E_Id);
-                        $$->atrib.nome = "expr_vazia";
-                        //$$ = NULL;
+                        //$$ = novoNoExp(E_Id);
+                        //$$->atrib.nome = "expr_vazia";
+                        $$ = NULL;
                     }
             ;
 sel_decl    : IF ABREPAR exp FECHAPAR stmt
@@ -340,8 +344,8 @@ static int yylex(void)
 
 // Função principal do analisador sintático
 NoArvore * parse(void){
-  //extern int yydebug;
-  // yydebug = 1;
+//  extern int yydebug;
+//  yydebug = 1;
   yyparse();
   return arvoreSalva;
 }

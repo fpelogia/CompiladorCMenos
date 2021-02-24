@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "symtab.h"
+#include "definitions.h"
 
 // Tamanho da tabela Hash
 #define SIZE 211
@@ -29,17 +29,16 @@ typedef struct listaDeLinhas{
     struct listaDeLinhas * prox;
 } * ListaDeLinhas;
 
-//ADICIONAR MAIS UM CAMPO PARA SALVAR O ESCOPO
-//SALVAR O TIPO DA VARIAVEL
 
 // Lista de Blocos (unidades básicas da Tabela Hash)
 typedef struct listaDeBlocos
    { char * nome;
      char * escopo;
+     int eh_funcao; // 0: variável // 1: função
      Tipo tipo; 
      ListaDeLinhas linhas;
      int numbloco ; // utilizado ao criar
-     struct ListaDeBlocos* prox;
+     struct listaDeBlocos* prox;
    } * ListaDeBlocos;
 
 //Tabela Hash
@@ -50,7 +49,7 @@ static ListaDeBlocos Tabela_hash[SIZE];
    e os locais de memoria na tabela de simbolos
 */
 
-void insere_tab_sim( char * nome, int numlinha, int loc, char * escopo, Tipo tipo)
+void insere_tab_sim( char * nome, int numlinha, int loc, char * escopo, Tipo tipo, int eh_funcao)
 { int h = hash(nome);
   ListaDeBlocos l =  Tabela_hash[h];
   while ((l != NULL) && (strcmp(nome,l->nome) != 0))
@@ -63,6 +62,7 @@ void insere_tab_sim( char * nome, int numlinha, int loc, char * escopo, Tipo tip
     l->numbloco = loc;
     l->escopo = escopo;
     l->tipo = tipo;
+    l->eh_funcao = eh_funcao;
     l->linhas->prox = NULL;
     l->prox = Tabela_hash[h];
     Tabela_hash[h] = l; }
@@ -94,7 +94,7 @@ int consulta_tab_sim ( char * nome )
 
 void imprimeTabSim(FILE * listing)
 { int i;
-  fprintf(listing,"Nome da Variavel  Localizacao   Linhas Numero\n");
+  fprintf(listing,"Nome da Variavel  Num. Bloco    Linhas Numero\n");
   fprintf(listing,"----------------  -----------   -------------\n");
   for (i=0;i<SIZE;++i)
   { if (Tabela_hash[i] != NULL)

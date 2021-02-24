@@ -1,22 +1,10 @@
-#include "globals.h"
-#include "symtab.h"
-#include "analyze.h"
+#include "definitions.h"
 
 //contador para os endereços na lista de blocos
 static int location = 0;
+static char* escopo = "global";
+bool Erro;
 
-// Faz percurso "pré-ordem" em uma árvore inserindo seus
-// nós na tabela de símbolos
-static void percorre(NoArvore * arv){ 
-    if (arv != NULL){ 
-        insereNo(t);//processa nó pai antes dos filhos
-        int i;
-        for (i=0; i < MAXFILHOS; i++){
-            percorre(arv->filho[i]);//processa filhos da esquerda para a direita
-        }
-        percorre(t->irmao);
-      }
-}
 
 // Insere nós na tabela de símbolos 
 // Caso já presente, atualiza lista com as linhas
@@ -24,12 +12,22 @@ static void insereNo( NoArvore * t){
     switch (t->tipo_de_no){
         case TDecl:
             switch (t->tipo.decl){ 
-                case D_var:
                 case D_func:
+                    if (consulta_tab_sim(t->atrib.nome) == -1){
+                        insere_tab_sim(t->atrib.nome,t->numlinha,location++,"global",t->tipo_c,1);
+                        escopo = t->atrib.nome;// escopo da função
+                    }else{
+                        Erro = 1;
+                        printf("Erro Semântico na linha %d\n\tFunção %s já declarada!\n",t->numlinha,t->atrib.nome);
+                    }
+                    break;
+                case D_var:
                     if (consulta_tab_sim(t->atrib.nome) == -1)
-                        insere_tab_sim(t->atrib.nome,t->numlinha,location++);
-                    else
-                        insere_tab_sim(t->atrib.nome,t->numlinha,0);
+                        insere_tab_sim(t->atrib.nome,t->numlinha,location++,escopo,t->tipo_c,0);
+                    else{
+                        Erro = 1;
+                        printf("Erro Semântico na linha %d\n\tVariável %s já declarada!\n",t->numlinha,t->atrib.nome);
+                    }
                     break;
                 default:
                      break;
@@ -38,10 +36,13 @@ static void insereNo( NoArvore * t){
         case TStmt:
             switch (t->tipo.stmt){ 
                 case S_Chamada:
-                    if (consulta_tab_sim(t->atrib.nome) == -1)
-                        insere_tab_sim(t->atrib.nome,t->numlinha,location++);
-                    else
-                        insere_tab_sim(t->atrib.nome,t->numlinha,0);
+                    if (consulta_tab_sim(t->atrib.nome) == -1){
+                        // VERIFICAR TAMBÉM FILTRANDO PELO ESCOPO
+                        // TALVEZ ESCREVER FUNÇÃO QUE BUSCA PELO ESCOPO
+                        Erro = 1;
+                        printf("Erro Semântico na linha %d\n\tFunção %s não declarada no escopo local!\n",t->numlinha,t->atrib.nome);
+                    }else
+                        insere_tab_sim(t->atrib.nome,t->numlinha,0,escopo,Void,1);//ultimos 4 parâmetros não são utilizados
                     break;
                 default:
                      break;
@@ -50,10 +51,13 @@ static void insereNo( NoArvore * t){
         case TExp:
             switch (t->tipo.exp){
                 case E_Id:
-                    if (consulta_tab_sim(t->atrib.nome) == -1)
-                        insere_tab_sim(t->atrib.nome,t->numlinha,location++);
-                    else
-                        insere_tab_sim(t->atrib.nome,t->numlinha,0);
+                    if(strcmp(t->atrib.nome,"void")!=0){
+                        if (consulta_tab_sim(t->atrib.nome) == -1){
+                            Erro = 1;
+                            printf("Erro Semântico  na linha %d\n\tVariável %s não declarada no escopo local!\n",t->numlinha,t->atrib.nome);
+                        }else
+                            insere_tab_sim(t->atrib.nome,t->numlinha,0,escopo,t->tipo_c,0);
+                    }
                     break;
                 default:
                     break;
@@ -64,21 +68,15 @@ static void insereNo( NoArvore * t){
     }
 }
 
-//Função que monta a tabela de símbolos a partir da árvore sintática
-void montaTabSim(NoArvore * arv){ 
-    percorre(arv);
-    fprintf(stdout,"\nTabela de Símbolos:\n\n");
-    imprimeTabSim(stdout);
-}
 
 static void typeError(NoArvore * t, char * message){
     if(t->atrib.nome)
-        fprintf(listing,"Erro sintático:%s na linha %d: %s\n", t->atrib.nome, t->numlinha);
+        fprintf(stdout,"Erro sintático:%s na linha %d: %s\n", t->atrib.nome, t->numlinha);
     else
-        fprintf(listing,"Erro sintático na linha %d: %s\n", t->numlinha);
+        fprintf(stdout,"Erro sintático na linha %d: %s\n", t->numlinha);
   //Erro = true;
 }
-
+/*
 // Função que faz checagem de tipo em um dado nó
 static void checaNo(NoArvore * t){
     switch (t->tipo_de_no){ 
@@ -125,9 +123,29 @@ static void checaNo(NoArvore * t){
         default:
             break;
       }
+}*/
+// Faz percurso "pré-ordem" em uma árvore inserindo seus
+// nós na tabela de símbolos
+static void percorre(NoArvore * arv){ 
+    if (arv != NULL){ 
+        insereNo(arv);//processa nó pai antes dos filhos
+        int i;
+        for (i=0; i < MAXFILHOS; i++){
+            percorre(arv->filho[i]);//processa filhos da esquerda para a direita
+        }
+        //checaNo(t);
+        percorre(arv->irmao);
+      }
 }
 
 // Função que faz a checagem de tipos a partir da árvore sintática
 void checaTipos(NoArvore * arv){
-    percorre(arv,nullProc,checkNode);
+    percorre(arv);
+}
+
+//Função que monta a tabela de símbolos a partir da árvore sintática
+void montaTabSim(NoArvore * arv){ 
+    percorre(arv);
+    fprintf(stdout,"\nTabela de Símbolos:\n\n");
+    imprimeTabSim(stdout);
 }
