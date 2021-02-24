@@ -78,13 +78,20 @@ void insere_tab_sim( char * nome, int numlinha, int loc, char * escopo, Tipo tip
 /* Função consulta_tab_sim retorna a localização
  * de memoria de uma variavel ou -1 caso contrario
  */
-int consulta_tab_sim ( char * nome )
+int consulta_tab_sim ( char * nome , char * escopo)
 { int h = hash(nome);
   ListaDeBlocos l =  Tabela_hash[h];
-  while ((l != NULL) && (strcmp(nome,l->nome) != 0))
+  while ((l != NULL) && (strcmp(nome,l->nome) != 0)) //percorre a lista até ela ser vazia ou achar a var
     l = l->prox;
-  if (l == NULL) return -1;
-  else return l->numbloco;
+  if ((l == NULL)) return -1; //nao encontrado, primeira vez declarada
+  else{ //encontrado
+    if (strcmp(escopo, l->escopo) != 0){ //variavel decalarada num escopo diferente
+      return -1;
+    }
+    else{
+      return l->numbloco;
+    }
+  }
 }
 
 /* Procedimento imprimeTabSim imprime
