@@ -9,9 +9,9 @@ bool Erro;
 
 static void typeError(NoArvore * t, char * message){
     if(t->atrib.nome)
-        fprintf(stdout,"Erro sintático:%s na linha %d:\n\t%s\n", t->atrib.nome, t->numlinha, message);
+        fprintf(stdout,"Erro Semântico:%s na linha %d:\n\t%s\n", t->atrib.nome, t->numlinha, message);
     else
-        fprintf(stdout,"Erro sintático na linha %d:\n\t%s\n", t->numlinha, message);
+        fprintf(stdout,"Erro Semântico na linha %d:\n\t%s\n", t->numlinha, message);
   //Erro = true;
 }
 
@@ -158,30 +158,44 @@ static void checaNo(NoArvore * t){
 }
 // Faz percurso "pré-ordem" em uma árvore inserindo seus
 // nós na tabela de símbolos
-static void percorre(NoArvore * arv){ 
+static void percorre_pre_ordem(NoArvore * arv){ 
     if (arv != NULL){ 
         insereNo(arv);//processa nó pai antes dos filhos
         int i;
         for (i=0; i < MAXFILHOS; i++){
-            percorre(arv->filho[i]);//processa filhos da esquerda para a direita
+            percorre_pre_ordem(arv->filho[i]);//processa filhos da esquerda para a direita
+        }
+        percorre_pre_ordem(arv->irmao);
+      }
+}
+
+// Faz percurso "pós-ordem" em uma árvore inserindo seus
+// nós na tabela de símbolos
+static void percorre_pos_ordem(NoArvore * arv){ 
+    if (arv != NULL){ 
+        int i;
+        for (i=0; i < MAXFILHOS; i++){
+            percorre_pos_ordem(arv->filho[i]);//processa filhos da esquerda para a direita
         }
         checaNo(arv);
-        percorre(arv->irmao);
+        percorre_pos_ordem(arv->irmao);
       }
 }
 
 // Função que faz a checagem de tipos a partir da árvore sintática
 void checaTipos(NoArvore * arv){
-    percorre(arv);
+    printf("Fazendo Checagem de Tipos...\n");
+    percorre_pos_ordem(arv);
+    printf("Fim da Checagem de Tipos...\n");
 }
 
 //Função que monta a tabela de símbolos a partir da árvore sintática
 void montaTabSim(NoArvore * arv){ 
-    percorre(arv);
+    percorre_pre_ordem(arv);
     if(!possuiMain){
         fprintf(stdout,"\nErro Semântico: Função principal (main) não declarada\n");
     }else{
-        fprintf(stdout,"\nTabela de Símbolos:\n\n");
+        fprintf(stdout,"\n====================  Tabela de Símbolos  ==================\n\n");
         imprimeTabSim(stdout);
     }
 }

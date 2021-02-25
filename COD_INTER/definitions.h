@@ -31,6 +31,12 @@ extern char ID_nome[MAX_TAM_TOKEN + 1]; // armazena lexema (nome) de tokens ID
 extern char NUM_val[MAX_TAM_TOKEN + 1]; // armazena string com valor de tokens NUM
 
 
+#define MAX_LINHA 100
+// Roda scanner e imprime os tokens reconhecidos e seus lexemas
+void imprimeTokens(char* nomearq);
+
+
+
 typedef int Token; // yacc define automaticamente os valores inteiros dos Tokens
 
 //==========  (Definição das estruturas de Árvore Sintática)  ==============
@@ -101,4 +107,7 @@ void checaTipos(NoArvore * arv);
 // Função que gera o código intermediário de 3 endereços
 // a partir da árvore sintática e o armazena no arquivo
 // arq
-void geraCod(NoArvore * arv, char * arq);
+void geraCod(NoArvore * arv);
+
+
+

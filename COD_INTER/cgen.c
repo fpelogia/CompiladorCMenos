@@ -1,70 +1,58 @@
 #include "definitions.h"
 
-/* tmpOffset is the memory offset for temps
-   It is decremented each time a temp is
-   stored, and incremeted when loaded again
-*/
-static int tmpOffset = 0;
+static int tempnum = 1;
+static int labelnum = 0;
+static int numenderecos = 0; //idealmente não passa de 3
 
-/* prototype for internal recursive code generator */
 static void cGen (NoArvore * arv);
 
-/* Procedure genStmt generates code at a statement node */
 static void genStmt( NoArvore * arv)
 { NoArvore * p1, * p2, * p3;
   int savedLoc1,savedLoc2,currentLoc;
   int loc;
-  switch (arv->kind.stmt) {
+  switch (arv->tipo.stmt) {
 
-      case IfK :
-         if (TraceCode) emitComment("-> if") ;
-         p1 = arv->filhos[0] ;
-         p2 = arv->filhos[1] ;
-         p3 = arv->filhos[2] ;
-         /* generate code for test expression */
+      case S_If:
+         p1 = arv->filho[0] ;
+         p2 = arv->filho[1] ;
+         printf("t%d = ",tempnum);
          cGen(p1);
-         savedLoc1 = emitSkip(1) ;
-         //emitComment("if: jump to else belongs here");
-         /* recurse on then part */
+         printf("\n");
+         printf("if_f t%d goto L%d\n", tempnum, labelnum);
+         numenderecos = 0;
          cGen(p2);
-         savedLoc2 = emitSkip(1) ;
-         //emitComment("if: jump to end belongs here");
-         currentLoc = emitSkip(0) ;
-         emitBackup(savedLoc1) ;
-         //emitRM_Abs("JEQ",ac,currentLoc,"if: jmp to else");
-         emitRestore() ;
-         /* recurse on else part */
-         cGen(p3);
-         currentLoc = emitSkip(0) ;
-         emitBackup(savedLoc2) ;
-         emitRM_Abs("LDA",pc,currentLoc,"jmp to end") ;
-         emitRestore() ;
-         if (TraceCode)  emitComment("<- if") ;
-         break; /* if_k */
+         printf("LABEL L%d\n", labelnum++);
+         numenderecos = 0;
+         break; 
 
-      case RepeatK:
-         if (TraceCode) emitComment("-> repeat") ;
-         p1 = arv->filhos[0] ;
-         p2 = arv->filhos[1] ;
-         savedLoc1 = emitSkip(0);
-         emitComment("repeat: jump after body comes back here");
-         /* generate code for body */
+      case S_While:
+         p1 = arv->filho[0] ;
+         p2 = arv->filho[1] ;
+         printf("LABEL L%d\n",labelnum);
          cGen(p1);
-         /* generate code for test */
+         break;
+      case S_Atrib:
+         tempnum++;
+         numenderecos++;
+         // caso não seja vetor
+         p1 = arv->filho[0] ;
+         p2 = arv->filho[1] ;
+         printf("t%d = ", tempnum);
+         //printf("\n\t\tNUMEND:%d\n", numenderecos);
          cGen(p2);
-         emitRM_Abs("JEQ",ac,savedLoc1,"repeat: jmp back to body");
-         if (TraceCode)  emitComment("<- repeat") ;
-         break; /* repeat */
-
-      case AssignK:
+         //printf("\n\t\tNUMEND:%d\n", numenderecos);
+         printf("\n");
+         printf("%s = t%d\n", p1->atrib.nome, tempnum);
+         //printf("\n\t\tNUMEND:%d\n", numenderecos);
+         numenderecos = 0;
+         break;
+     /* case AssignK:
          if (TraceCode) emitComment("-> assign") ;
-         /* generate code for rhs */
-         cGen(arv->filhos[0]);
-         /* now store value */
+         cGen(arv->filho[0]);
          loc = st_lookup(arv->atrib.nome);
          emitRM("ST",ac,loc,gp,"assign: store value");
          if (TraceCode)  emitComment("<- assign") ;
-         break; /* assign_k */
+         break; 
 
       case ReadK:
          emitRO("IN",ac,0,0,"read integer value");
@@ -72,129 +60,166 @@ static void genStmt( NoArvore * arv)
          emitRM("ST",ac,loc,gp,"read: store value");
          break;
       case WriteK:
-         /* generate code for expression to write */
-         cGen(arv->filhos[0]);
-         /* now output it */
+         cGen(arv->filho[0]);
          emitRO("OUT",ac,0,0,"write ac");
+         break;*/
+      case S_Retorno:
+         p1 = arv->filho[0];
+         tempnum++;
+         printf("t%d = ", tempnum);
+         cGen(p1);
+         printf("\nreturn t%d\n", tempnum++);
+      default:
+            break;
+    }
+} /* genStmt */
+
+static void genDecl( NoArvore * arv)
+{ NoArvore * p1, * p2, * p3;
+  int savedLoc1,savedLoc2,currentLoc;
+  int loc;
+  switch (arv->tipo.decl) {
+      case D_Tipo:
+         cGen(arv->filho[0]);
+         numenderecos = 0;
          break;
+      case D_func:
+         p2 = arv->filho[1] ;
+         printf("LABEL %s:\n", arv->atrib.nome);
+         cGen(p2);
+         numenderecos = 0;
+         break;
+      case D_var:
+        /*
+
+
+        */
+         break;
+
+     /* case AssignK:
+         if (TraceCode) emitComment("-> assign") ;
+         cGen(arv->filho[0]);
+         loc = st_lookup(arv->atrib.nome);
+         emitRM("ST",ac,loc,gp,"assign: store value");
+         if (TraceCode)  emitComment("<- assign") ;
+         break; 
+
+      case ReadK:
+         emitRO("IN",ac,0,0,"read integer value");
+         loc = st_lookup(arv->atrib.nome);
+         emitRM("ST",ac,loc,gp,"read: store value");
+         break;
+      case WriteK:
+         cGen(arv->filho[0]);
+         emitRO("OUT",ac,0,0,"write ac");
+         break;*/
       default:
          break;
     }
 } /* genStmt */
 
-/* Procedure genExp generates code at an expression node */
 static void genExp( NoArvore * arv)
 { int loc;
   NoArvore * p1, * p2;
-  switch (arv->kind.exp) {
+  switch (arv->tipo.exp) {
 
-    case ConstK :
-      if (TraceCode) emitComment("-> Const") ;
-      /* gen code to load integer constant using LDC */
-      emitRM("LDC",ac,arv->atrib.val,0,"load const");
-      if (TraceCode)  emitComment("<- Const") ;
-      break; /* ConstK */
+    case E_Num :
+      printf("%d", arv->atrib.val);
+      numenderecos++;
+      break;
     
-    case IdK :
-      if (TraceCode) emitComment("-> Id") ;
-      loc = st_lookup(arv->atrib.nome);
-      emitRM("LD",ac,loc,gp,"load id value");
-      if (TraceCode)  emitComment("<- Id") ;
-      break; /* IdK */
+    case E_Id :
+      printf("%s", arv->atrib.nome);
+      numenderecos++;
+      break; 
 
-    case OpK :
-         if (TraceCode) emitComment("-> Op") ;
-         p1 = arv->filhos[0];
-         p2 = arv->filhos[1];
-         /* gen code for ac = left arg */
+    case E_Op :
+         p1 = arv->filho[0];
+         p2 = arv->filho[1];
          cGen(p1);
-         /* gen code to push left operand */
-         emitRM("ST",ac,tmpOffset--,mp,"op: push left");
-         /* gen code for ac = right operand */
-         cGen(p2);
-         /* now load left operand */
-         emitRM("LD",ac1,++tmpOffset,mp,"op: load left");
+         //printf("\n\t\tNUMEND:%d\n", numenderecos);
          switch (arv->atrib.op) {
-            case PLUS :
-               emitRO("ADD",ac,ac1,ac,"op +");
+            case MAIS :
+               printf("+");
                break;
-            case MINUS :
-               emitRO("SUB",ac,ac1,ac,"op -");
+            case MENOS :
+               printf("-");
                break;
-            case TIMES :
-               emitRO("MUL",ac,ac1,ac,"op *");
+            case VEZES :
+               printf("*");
                break;
-            case OVER :
-               emitRO("DIV",ac,ac1,ac,"op /");
+            case DIV :
+               printf("/");
                break;
-            case LT :
-               emitRO("SUB",ac,ac1,ac,"op <") ;
-               emitRM("JLT",ac,2,pc,"br if true") ;
-               emitRM("LDC",ac,0,ac,"false case") ;
-               emitRM("LDA",pc,1,pc,"unconditional jmp") ;
-               emitRM("LDC",ac,1,ac,"true case") ;
+            case MENOR :
+               printf("<");
+               //emitRO("SUB",ac,ac1,ac,"op <") ;
+               //emitRM("JLT",ac,2,pc,"br if true") ;
+               //emitRM("LDC",ac,0,ac,"false case") ;
+               //emitRM("LDA",pc,1,pc,"unconditional jmp") ;
+               //emitRM("LDC",ac,1,ac,"true case") ;
                break;
-            case EQ :
-               emitRO("SUB",ac,ac1,ac,"op ==") ;
-               emitRM("JEQ",ac,2,pc,"br if true");
-               emitRM("LDC",ac,0,ac,"false case") ;
-               emitRM("LDA",pc,1,pc,"unconditional jmp") ;
-               emitRM("LDC",ac,1,ac,"true case") ;
+            case IGUALIGUAL :
+               //emitRO("SUB",ac,ac1,ac,"op ==") ;
+               printf(" == ");
+               //emitRM("JEQ",ac,2,pc,"br if true");
+               //emitRM("LDC",ac,0,ac,"false case") ;
+               //emitRM("LDA",pc,1,pc,"unconditional jmp") ;
+               //emitRM("LDC",ac,1,ac,"true case") ;
+               break;
+            case DIF :
+               //emitRO("SUB",ac,ac1,ac,"op ==") ;
+               printf(" != ");
+               //emitRM("JEQ",ac,2,pc,"br if true");
+               //emitRM("LDC",ac,0,ac,"false case") ;
+               //emitRM("LDA",pc,1,pc,"unconditional jmp") ;
+               //emitRM("LDC",ac,1,ac,"true case") ;
+               break;
+
+            case MENIGUAL:
+               printf("<=");
+               break;
+            case MAIIGUAL:
+               printf(">=");
                break;
             default:
-               emitComment("BUG: Unknown operator");
+               //emitComment("BUG: Unknown operator");
+               printf("Operador desconhecido\n");
+               Erro = 1;
                break;
-         } /* case op */
-         if (TraceCode)  emitComment("<- Op") ;
-         break; /* OpK */
+         } 
+
+         cGen(p2);
+
+         break; 
 
     default:
       break;
   }
-} /* genExp */
+} 
 
-/* Procedure cGen recursively generates code by
- * tree traversal
- */
 static void cGen( NoArvore * arv)
 { if (arv != NULL)
-  { switch (arv->nodekind) {
+  { switch (arv->tipo_de_no) {
       case TStmt:
         genStmt(arv);
         break;
       case TExp:
         genExp(arv);
         break;
+      case TDecl:
+        genDecl(arv);
+        break;
       default:
         break;
     }
-    cGen(arv->sibling);
+    cGen(arv->irmao);
   }
 }
 
-/**********************************************/
-/* the primary function of the code generator */
-/**********************************************/
-/* Procedure codeGen generates code to a code
- * file by traversal of the syntax tree. The
- * second parameter (codefile) is the file name
- * of the code file, and is used to print the
- * file name as a comment in the code file
- */
-void geraCod(NoArvore * arv, char * arq);
-{  char * s = malloc(strlen(codefile)+7);
-   strcpy(s,"File: ");
-   strcat(s,codefile);
-   emitComment("TINY Compilation to TM Code");
-   emitComment(s);
-   /* generate standard prelude */
-   emitComment("Standard prelude:");
-   emitRM("LD",mp,0,ac,"load maxaddress from location 0");
-   emitRM("ST",ac,0,ac,"clear location 0");
-   emitComment("End of standard prelude.");
-   /* generate code for TINY program */
-   cGen(syntaxTree);
-   /* finish */
-   emitComment("End of execution.");
-   emitRO("HALT",0,0,0,"");
+//gera o código intermediário utilizando a Função
+// recursiva cGen, que percorre a arvore sintática
+void geraCod(NoArvore * arv){    
+    cGen(arv);
+    printf("HALT\n\n");
 }

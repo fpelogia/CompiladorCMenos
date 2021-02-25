@@ -55,7 +55,8 @@ void insere_tab_sim( char * nome, int numlinha, int loc, char * escopo, Tipo tip
   while ((l != NULL) && ((strcmp(nome,l->nome) != 0) || strcmp(l->escopo,escopo)!=0 ))
     l = l->prox;
   if (l == NULL) /* variavel ainda nao esta na tabela */
-  { l = (ListaDeBlocos) malloc(sizeof(struct listaDeBlocos));
+  {
+    l = (ListaDeBlocos) malloc(sizeof(struct listaDeBlocos));
     l->nome = nome;
     l->linhas = (ListaDeLinhas) malloc(sizeof(struct listaDeLinhas));
     l->linhas->numlinha = numlinha;
@@ -86,7 +87,12 @@ int consulta_tab_sim ( char * nome , char * escopo)
   if ((l == NULL)) return -1; //nao encontrado, primeira vez declarada
   else{ //encontrado
     if (strcmp(escopo, l->escopo) != 0 ){ //variavel decalarada num escopo diferente
-      return -1;
+       if(strcmp(escopo,"global") != 0){
+          return -1;
+       }else{
+           printf("tentaram criar var %s mas não pode!\n", nome);
+          return l->numbloco;
+       }
     }
     else{
       return l->numbloco;

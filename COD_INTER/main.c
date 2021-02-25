@@ -7,23 +7,31 @@ int numlinha = 0;
 FILE * arq_cod_fonte;
 
 int main(){
+
     arq_cod_fonte = fopen("sample.c","r");
     if(arq_cod_fonte == NULL){
-        perror("Falha na leitura do arquivo");
+        printf("Falha na leitura do código fonte\n");
     }
-
+    printf("\n====================== Análise Léxica ===========================\n");
+    imprimeTokens("sample.c");    
+    fclose(arq_cod_fonte);
+    arq_cod_fonte = fopen("sample.c","r");
+    numlinha = 1;
+    
     NoArvore* arvoreSintatica;
     arvoreSintatica = parse();
-   /* NoArvore* no;
-    no = arvoreSintatica;
-    printf("1)tipo_de_no: %d\n",no->tipo_de_no);
-    printf("1)tipo de retorno: %d\n",no->tipo_c);
-    printf("1)nomefunc: %s\n",no->atrib.nome);*/
-    printf("\n\nÁrvore Sintática:\n");
+    printf("\n\n==================== Árvore Sintática ====================\n\n");
     imprimeArvore(arvoreSintatica);
     printf("\n\n");
-    montaTabSim(arvoreSintatica);
 
+    montaTabSim(arvoreSintatica);
+    checaTipos(arvoreSintatica);
+
+    printf("\n\n============  Código Intermediário (3 endereços)  ============\n\n");
+    geraCod(arvoreSintatica);
     fclose(arq_cod_fonte);
     return 0;
 }
+
+
+

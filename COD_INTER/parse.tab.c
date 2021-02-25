@@ -1765,7 +1765,7 @@ yyreduce:
   case 65: /* ativacao: ID $@6 ABREPAR args FECHAPAR  */
 #line 302 "parse.y"
                  { yyval = novoNoStmt(S_Chamada);
-                   yyval->filho[0] = yyvsp[-1];
+                   yyval->filho[1] = yyvsp[-1]; // filho direito
                    yyval->atrib.nome = nomeFunc;
                    yyval->numlinha = numLinhaSalva;
                  }

@@ -1,5 +1,54 @@
 #include "definitions.h"
 
+void imprimeTokens(char* nomearq){
+    FILE* fc = fopen("sample.c","r");
+    if(fc == NULL){
+        printf("Falha na leitura do código fonte");
+        Erro = 1;
+        return;
+    }
+    char linha[MAX_LINHA];
+    bool primeira_vez = true, leftover = false;
+    while(1){
+        if(fgets(linha, MAX_LINHA, fc) == NULL){
+            break;
+        }
+        printf("\n%d: %s",numlinha, linha);
+        Token rt;
+        int nlsalva;
+        if(primeira_vez){
+            nlsalva= numlinha + 1;
+            primeira_vez = false;
+        }else{
+            nlsalva = numlinha;
+        }
+        if(leftover){
+            if(rt == ID || rt == NUM){
+                printf("\t%d: %s, val= %s\n",numlinha, nome_token(rt), yytext);
+            }else{
+                printf("\t%d: %s\n",numlinha, nome_token(rt));
+            }
+            leftover = false;
+        }
+        do{
+            rt = retornaToken();
+            if(rt == EOF ) break;
+            else if(numlinha != nlsalva){
+                leftover = true;
+                
+                break;
+            }
+            if(rt == ID || rt == NUM){
+                printf("\t%d: %s, val= %s\n",numlinha, nome_token(rt), yytext);
+            }else{
+                printf("\t%d: %s\n",numlinha, nome_token(rt));
+            }
+        }while(1);
+    }
+    fclose(fc);
+
+}
+
 // Cria e retorna um novo Nó do tipo "Declaração"
 NoArvore * novoNoDecl(TipoDecl tipo)
 { NoArvore * no = (NoArvore *) malloc(sizeof(NoArvore));
