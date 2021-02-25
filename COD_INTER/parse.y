@@ -300,7 +300,7 @@ ativacao    : ID { nomeFunc = copiaString(ID_nome);
                  }
             ABREPAR args FECHAPAR
                  { $$ = novoNoStmt(S_Chamada);
-                   $$->filho[0] = $4;
+                   $$->filho[1] = $4; // filho direito
                    $$->atrib.nome = nomeFunc;
                    $$->numlinha = numLinhaSalva;
                  }

@@ -97,3 +97,8 @@ void montaTabSim(NoArvore * arv);
 
 // Função que faz a checagem de tipos a partir da árvore sintática
 void checaTipos(NoArvore * arv);
+
+// Função que gera o código intermediário de 3 endereços
+// a partir da árvore sintática e o armazena no arquivo
+// arq
+void geraCod(NoArvore * arv, char * arq);
