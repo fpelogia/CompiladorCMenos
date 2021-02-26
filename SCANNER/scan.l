@@ -58,6 +58,6 @@ Token retornaToken(FILE* arq)
     else yyin = stdin;
     */
     yyin = arq;
-    yylex();
+    Token t = yylex();
+    return t;
 }
-

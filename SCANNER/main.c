@@ -2,9 +2,17 @@
 #include <stdlib.h>
 #include "definitions.h"
 #define MAX_LINHA 100
+// Roda scanner e imprime os tokens reconhecidos e seus lexemas
+void imprimeTokens(char* nomearq);
 int main(){
-    FILE* f = fopen("sample.c","r");
-    FILE* fc = fopen("sample.c","r");
+    printf("\n====================== Análise Léxica ===========================\n");
+    imprimeTokens("sample.c");
+    return 0;
+}
+
+void imprimeTokens(char* nomearq){
+    FILE* f = fopen(nomearq,"r");
+    FILE* fc = fopen(nomearq,"r");
     if(f == NULL){
         perror("Falha na leitura do arquivo");
     }
@@ -31,5 +39,5 @@ int main(){
     }
     fclose(f);
     fclose(fc);
-    return 0;
+
 }
