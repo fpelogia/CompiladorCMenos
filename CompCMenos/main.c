@@ -18,6 +18,7 @@ int main(){
     fclose(arq_cod_fonte);
     arq_cod_fonte = fopen("sample.c","r");
     numlinha = 1;
+
     
     NoArvore* arvoreSintatica;
     arvoreSintatica = parse();
@@ -29,6 +30,7 @@ int main(){
     montaTabSim(arvoreSintatica);
     if(!Erro)
         checaTipos(arvoreSintatica);
+
 
     printf("\n\n============  Código Intermediário (3 endereços)  ============\n\n");
     if(!Erro)

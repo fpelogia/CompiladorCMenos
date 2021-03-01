@@ -98,9 +98,6 @@ NoArvore * novoNoExp(TipoExp tipo)
   return t;
 }
 
-/* Function copyString allocates and makes a new
- * copy of an existing string
- */
 char * copiaString(char * s)
 { int n;
   char * t;
@@ -126,32 +123,20 @@ char * retStrTipo(Tipo t){
 }
 
 
-/* Variable indentno is used by printTree to
- * store current number of spaces to indent
- */
 static int indentno = 0;
 
-/* macros to increase/decrease indentation */
 #define INDENT indentno+=4
 #define UNINDENT indentno-=4
 
-/* printSpaces indents by printing spaces */
 static void imprimeEspacos(void)
 { int i;
   for (i=0;i<indentno;i++)
     fprintf(stdout," ");
 }
 
-/* procedure printTree prints a syntax tree to the 
- * listing file using indentation to indicate subtrees
- */
 void imprimeArvore( NoArvore * arv )
 { int i;
-//  if (arv != NULL && arv->tipo_de_no==TExp && arv->tipo.exp ==E_Id && (strcmp(arv->atrib.nome,"sem_local_decl")==0 || strcmp(arv->atrib.nome,"sem_stmt_lista")==0)) {
-    // batata
-//  }else{
   INDENT;
-//  }
   while (arv != NULL) {
     imprimeEspacos();
     if (arv->tipo_de_no==TStmt)
@@ -298,6 +283,9 @@ char* nome_token(Token t){
             break;
         case DIV:
             strcpy(nome,"DIV");
+            break;
+        case FECHAPAR:
+            strcpy(nome,"FECHAPAR");
             break;
         case ABREPAR:
             strcpy(nome,"ABREPAR");

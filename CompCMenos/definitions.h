@@ -50,7 +50,7 @@ typedef enum {Void,Integer,Array,Boolean} Tipo; // Usado para verificação de t
 
 typedef struct noArvore{
     struct noArvore * filho[MAXFILHOS];
-        struct noArvore * irmao;
+    struct noArvore * irmao;
     int numlinha;
     TipoNo tipo_de_no;
     union { TipoDecl decl; TipoStmt stmt; TipoExp exp;} tipo; //talvez melhorar o nome

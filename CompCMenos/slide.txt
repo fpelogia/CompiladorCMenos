@@ -1,0 +1,24 @@
+                  
+                      [Trabalho Final de Compiladores - ADE 2020.2 ]
+
+Grupo:
+    Frederico J. R. Pelogia  RA:133619
+    Gustavo B. de Oliveira   RA:120406
+
+Compilador para Linguagem C-
+
+CompCMenos/
+├── definitions.c  <--------- Definições globais 
+├── definitions.h  <---^
+├── sample.c   <-- Cód. fonte
+├── scan.l   <-- Arquivo de entrada do Lex/Flex 
+├── lex.yy.c  <-- Arquivo de saída do Lex/Flex: Analisador Léxico
+├── parse.y <-- arquivo de entrada para o YACC/Bison
+├── parse.tab.c  <-- gerado pelo YACC/Bison: Analisador Sintático
+├── parse.tab.h  <-- gerado pelo YACC/Bison (opção -d)
+├── symtab.c <--  Definição da TS e funções auxiliares
+├── analyze.c <-- Analisador Semântico
+├── cgen.c <-- Gerador de código intermediário 
+├── main.c <-- Arquivo principal do compilador
+├── run.sh   <-- Script para rodar
+
