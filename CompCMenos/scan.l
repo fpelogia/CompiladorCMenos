@@ -29,8 +29,10 @@ ENTER \n
 "while" { return WHILE;}
 "+" { return MAIS;}
 "-" { return MENOS;}
-"<" { return MENIGUAL; }
-">" { return MAIIGUAL; }
+"<=" { return MENIGUAL; }
+"<" { return MENOR; }
+">=" { return MAIIGUAL; }
+">" { return MAIOR; }
 "*" { return VEZES; }
 "/" { return DIV; }
 "(" { return ABREPAR; }
