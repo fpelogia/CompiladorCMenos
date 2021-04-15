@@ -13,6 +13,6 @@ Compilador para a linguagem C menos.
 - O código da maior parte dos módulos do computador foi amplamente inspirado nas explicações e no código diponibilizado pelo livro [1].
 
 ## Referências
-- LOUDEN, K. C., SILVA F. S. C. __Compiladores - Princípios e Práticas__ - Editora Pioneira Thomson Learning, 2004
+- [1] LOUDEN, K. C., SILVA F. S. C. __Compiladores - Princípios e Práticas__ - Editora Pioneira Thomson Learning, 2004
 ISBN 8522104220, 9788522104222
 
