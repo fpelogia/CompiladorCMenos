@@ -1,15 +1,15 @@
 /* Um programa para ordenação por seleção de uma matriz com dez elementos. */
-int xg[10];
+int x[10];
 int minloc ( int a[], int low, int high ) { 
     int i; 
     int x; 
     int k; 
-    k = low; 
+    k = low;
     x = a[low]; 
-    i = low + 1;
+    i = low + 1; 
     while (i < high) {
         if (a[i] < x) {
-            x = a[i]; 
+            x = a[i];
             k = i; 
         } 
         i = i + 1;
@@ -17,16 +17,16 @@ int minloc ( int a[], int low, int high ) {
     return k; 
 }
 
-void sort( int a[], int low, int high) {
+void sort( int a[], int low, int high) { 
     int i; 
     int k; 
     i = low;
     while (i < high-1) { 
         int t;
-        k = minloc(a[0],i,high); 
+        k = minloc(a,i,high);
         t = a[k]; 
-        a[k] = a[i]; 
-        a[i] = t; 
+        a[k] = a[i];
+        a[i] = t;
         i = i + 1;
     } 
 }
@@ -35,12 +35,24 @@ void main(void) {
     int i; 
     i = 0;
     while (i < 10) {
-        xg[i] = input();
-        i = i + 1; 
+        x[i] = input();
+        i = i + 1;
     }
-    sort(xg[0],0,10); i = 0;
+    sort(x,0,10); 
+    i = 0;
     while (i < 10) { 
-        output(xg[i]); 
+        output(x[i]);
         i = i + 1; 
     }
 }
+
+
+
+
+
+
+
+
+
+
+
