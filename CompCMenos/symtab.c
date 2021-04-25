@@ -48,7 +48,6 @@ static ListaDeBlocos Tabela_hash[SIZE];
 /* Procedimento insere_tab_sim insere o numero das linhas 
    e os locais de memoria na tabela de simbolos
 */
-
 void insere_tab_sim( char * nome, int numlinha, int loc, char * escopo, Tipo tipo, int eh_funcao)
 { int h = hash(nome);
   ListaDeBlocos l =  Tabela_hash[h];
@@ -61,7 +60,14 @@ void insere_tab_sim( char * nome, int numlinha, int loc, char * escopo, Tipo tip
     l->linhas = (ListaDeLinhas) malloc(sizeof(struct listaDeLinhas));
     l->linhas->numlinha = numlinha;
     l->numbloco = loc;
-    l->escopo = escopo;
+    if(strcmp(escopo,"global")==0){
+        char* eg = malloc(7*sizeof(char));
+        if(eg == NULL){printf("Erro de alocação de memória!\n");return;}
+        eg[0] ='g';eg[1]='l';eg[2]='o';eg[3]='b';eg[4]='a';eg[5]='l';eg[6]='\0';
+        l->escopo = eg;
+    }else{
+        l->escopo = escopo;
+    }
     l->tipo = tipo;
     l->eh_funcao = eh_funcao;
     l->linhas->prox = NULL;
@@ -81,79 +87,85 @@ void insere_tab_sim( char * nome, int numlinha, int loc, char * escopo, Tipo tip
   }
 } /* insere_tab_sim */
 
-/* Função consulta_tab_sim retorna a localização
- * de memoria de uma variavel ou -1 caso contrario
- */
-int consulta_tab_sim ( char * nome , char * escopo)
-{ int h = hash(nome);
-  ListaDeBlocos l =  Tabela_hash[h];
-  while ((l != NULL) && (strcmp(nome,l->nome) != 0)) //percorre a lista até ela ser vazia ou achar a var
-    l = l->prox;
-  if ((l == NULL)) return -1; //nao encontrado, primeira vez declarada
-  else{ //encontrado
-    if (strcmp(escopo, l->escopo) != 0 ){ //variavel decalarada num escopo diferente
-       if(l->eh_funcao == 1){ // declaração de função
-           if(strcmp(l->escopo,"global") != 0){
-              return -1;
-           }else{
-              return l->numbloco;
-           }
-       }else{//declaração de variável
-           return -1; //existe var com mesmo nome mas em outro escopo (talvez até global)
-           //permite criar!
-       }
-    }
-    else{
-      return l->numbloco;
-    }
-  }
-}
 
-// Consulta presença de uma função na TS e também devolve
-// o tipo dela, caso encontre.
-// Retorna -1 caso não encontre no escopo atual
-int consulta_tab_sim_cham ( char * nome , char * escopo, Tipo* tipo_c)
-{ int h = hash(nome);
-  ListaDeBlocos l =  Tabela_hash[h];
-  while ((l != NULL) && (strcmp(nome,l->nome) != 0)) //percorre a lista até ela ser vazia ou achar a var
-    l = l->prox;
-  if ((l == NULL)) return -1; //nao encontrado, primeira vez declarada
-  else{ //encontrado
-    if (strcmp(escopo, l->escopo) != 0 ){ //variavel decalarada num escopo diferente
-      return -1;
+// Função que retorna 1 se houver uma funçao de mesmo nome declarada
+// e retorna 0 caso contrário.
+int func_ja_declarada (char * nome){
+    int h = hash(nome);
+    ListaDeBlocos l =  Tabela_hash[h];
+    while ((l != NULL) && ((strcmp(nome,l->nome) != 0)||(l->eh_funcao == 0))){
+        l = l->prox;
     }
-    else{
-        *tipo_c = l->tipo;//herda tipo a partir da tabela
-        return l->numbloco;
-    }
-  }
-}
-        
-// Usada para lidar com uso de variáveis
-int consulta_tab_sim_uso_var ( char * nome , char * escopo, Tipo* tipo_c)
-{ int h = hash(nome);
-  ListaDeBlocos l =  Tabela_hash[h];
-  while ((l != NULL) && (strcmp(nome,l->nome) != 0)) //percorre a lista até ela ser vazia ou achar a var
-    l = l->prox;
-  if ((l == NULL)) return -1; //nao encontrado, primeira vez declarada
-  else{ //encontrado
-    if (strcmp(escopo, l->escopo) != 0  ){ //variavel decalarada num escopo diferente
-        if(strcmp(l->escopo, "global")!=0){
-            return -1;//não era global. erro
-        }else{
-            return l->numbloco;
-        }
+    if (l == NULL) {
+        return 0;
     }else{
-        *tipo_c = l->tipo; //herda tipo a partir da tabela
-        if(strcmp(l->escopo, "global") == 0){
-            return l->numbloco;
-        }else{
-            return -2;
-        }
+        return 1;
     }
-  }
 }
 
+// Função que retorna 1 se houver uma variável de mesmo nome declarada
+// e retorna 0 caso contrário.
+int var_ja_declarada (char * nome){
+    int h = hash(nome);
+    ListaDeBlocos l =  Tabela_hash[h];
+    while ((l != NULL) && ((strcmp(nome,l->nome) != 0)||(l->eh_funcao == 1))){
+        l = l->prox;
+    }
+    if (l == NULL) {
+        return 0;
+    }else{
+        return 1;
+    }
+}
+
+//Função que retorna 1 se já houver uma variavel decladara no escopo 
+//com o mesmo nome e retorna 0 caso contrário
+int var_ja_declarada_no_escopo(char *nome, char* escopo){
+    int h = hash(nome);
+    ListaDeBlocos l =  Tabela_hash[h];
+    while (l != NULL){
+        if((l->eh_funcao==0&&strcmp(nome, l->nome)==0)&&(strcmp(escopo,l->escopo)==0)){
+            break;
+        }
+        l = l->prox;
+    }
+    if (l == NULL) {
+        return 0;
+    }else{
+        return 1;
+    }
+}
+
+//Função que retorna 1 se houver uma variável global com o nome dado e
+// retorna 0 caso contrário
+int var_tem_global(char *nome){
+    int h = hash(nome);
+    ListaDeBlocos l =  Tabela_hash[h];
+    while (l != NULL){
+        if((l->eh_funcao==0&&strcmp(nome, l->nome)==0)&&(strcmp(l->escopo,"global")==0)){
+            break;
+        }
+        l = l->prox;
+    }
+    if (l == NULL) {
+        return 0;
+    }else{
+        return 1;
+    }
+}
+
+// Função que retorna o tipo de uma dada função
+// assume-se que a função está declarada.
+void retorna_tipo_func (char* nome, Tipo* tipo_c){
+    int h = hash(nome);
+    ListaDeBlocos l =  Tabela_hash[h];
+    while ((l != NULL) && ((strcmp(nome,l->nome) != 0)||(l->eh_funcao == 0))){
+        l = l->prox;
+    }
+    if (l != NULL) {
+        *tipo_c = l->tipo;
+    }
+}
 
 
 /* Procedimento imprimeTabSim imprime

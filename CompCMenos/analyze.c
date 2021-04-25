@@ -33,7 +33,7 @@ static void insereNo( NoArvore * t){
                         Erro = true;
                         printf("Erro Semântico na linha %d\n\tFunção %s é reservada!\n",t->numlinha,t->atrib.nome);
                     }else{
-                        if (consulta_tab_sim(t->atrib.nome, escopo) == -1){
+                        if (func_ja_declarada(t->atrib.nome)==0){
                             insere_tab_sim(t->atrib.nome,t->numlinha,location++,"global",t->tipo_c,1);
                             escopo = t->atrib.nome;// escopo da função
                         }else{
@@ -48,11 +48,24 @@ static void insereNo( NoArvore * t){
                         typeError(t,"Declaração de variável não inteira\n");
                         Erro = true;
                     }
-                    if (consulta_tab_sim(t->atrib.nome, escopo) == -1)
+                    if (var_ja_declarada(t->atrib.nome) == 0)
+                        //variável ainda não declarada
+                        //pode declarar
                         insere_tab_sim(t->atrib.nome,t->numlinha,location++,escopo,t->tipo_c,0);
                     else{
-                        Erro = true;
-                        printf("Erro Semântico na linha %d\n\tVariável %s já declarada!\n",t->numlinha,t->atrib.nome);
+                        //variável já declarada
+                        if(strcmp(escopo,"global")!=0){
+                            if(var_ja_declarada_no_escopo(t->atrib.nome, escopo) == 0){
+                                //pode declarar
+                                insere_tab_sim(t->atrib.nome,t->numlinha,location++,escopo,t->tipo_c,0);
+                            }else{
+                                Erro = true;
+                                printf("Erro Semântico na linha %d\n\tVariável %s já declarada!\n",t->numlinha,t->atrib.nome);
+                            }
+                        }else{
+                            Erro = true;
+                            printf("Erro Semântico na linha %d\n\tVariável global %s já declarada!\n",t->numlinha,t->atrib.nome);
+                        }
                     }
                     break;
                 default:
@@ -68,11 +81,12 @@ static void insereNo( NoArvore * t){
                     }else if(strcmp(t->atrib.nome,"output")==0){
                         //output
                         t->tipo_c = Integer;
-                    }else if (consulta_tab_sim_cham(t->atrib.nome, "global",tipo_c) == -1){
+                    }else if (func_ja_declarada(t->atrib.nome) == 0){
                         Erro = 1;
                         printf("Erro Semântico na linha %d\n\tFunção %s não declarada!\n",t->numlinha,t->atrib.nome);
                     }else{
                         //atualiza linhas
+                        retorna_tipo_func(t->atrib.nome,tipo_c);
                         t->tipo_c = *tipo_c;
                         insere_tab_sim(t->atrib.nome,t->numlinha,0,"global",t->tipo_c,1);
                     }
@@ -85,22 +99,28 @@ static void insereNo( NoArvore * t){
             switch (t->tipo.exp){
                 case E_Id: // verificar escopo
                     if(strcmp(t->atrib.nome,"void")!=0){
-                        if (consulta_tab_sim_uso_var(t->atrib.nome, escopo, tipo_c) == -1){
+                        if (var_ja_declarada(t->atrib.nome) == 0){
                             Erro = true;
                             printf("Erro Semântico  na linha %d\n\tVariável %s não declarada\n",t->numlinha,t->atrib.nome);
-                        }else if (consulta_tab_sim_uso_var(t->atrib.nome, escopo, tipo_c) == -2){
+                        }else if (var_ja_declarada_no_escopo(t->atrib.nome, escopo) == 1){
                             //mesmo escopo
+                            retorna_tipo_func(t->atrib.nome,tipo_c);
                             if(t->tipo_c == Void){
                                 t->tipo_c = *tipo_c;
                             }
                             insere_tab_sim(t->atrib.nome,t->numlinha,0,escopo,t->tipo_c,0);
-                        }
-                        else{
-                            if(t->tipo_c == Void){
-                                t->tipo_c = *tipo_c;
+                        }else{//não está declarada no escopo
+                            if(var_tem_global(t->atrib.nome)==0){
+                                Erro = true;
+                                printf("Erro Semântico  na linha %d\n\tVariável %s não declarada\n",t->numlinha,t->atrib.nome);
+                            }else{
+                                retorna_tipo_func(t->atrib.nome,tipo_c);
+                                if(t->tipo_c == Void){
+                                    t->tipo_c = *tipo_c;
+                                }
+                                //variável é global. atualizar linhas
+                                insere_tab_sim(t->atrib.nome,t->numlinha,0,"global",t->tipo_c,0);
                             }
-                            //variável é global. atualizar linhas
-                            insere_tab_sim(t->atrib.nome,t->numlinha,0,"global",t->tipo_c,0);
                         }
                     }
                     break;

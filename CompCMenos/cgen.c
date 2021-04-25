@@ -138,6 +138,7 @@ static void genExp( NoArvore * arv)
       break;
     
     case E_Id :
+      if(strcmp(arv->atrib.nome, "void")==0)   break;
       tempnum++;
       printf("(LOAD, $t%d, %s,  )\n", tempnum, arv->atrib.nome);
       nome_var = arv->atrib.nome;//perigoso

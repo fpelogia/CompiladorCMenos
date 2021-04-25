@@ -84,12 +84,26 @@ char * retStrTipo(Tipo t);
 */
 void insere_tab_sim( char * nome, int numlinha, int loc, char * escopo, Tipo tipo, int eh_funcao);
 
-/* Função consulta_tab_sim retorna a localização
- * de memoria de uma variavel ou -1 caso não a encontre
- */
-int consulta_tab_sim ( char * nome , char * escopo);
-int consulta_tab_sim_uso_var ( char * nome , char * escopo, Tipo *tipo_c);
-int consulta_tab_sim_cham ( char * nome , char * escopo, Tipo *tipo_c);
+// Função que retorna 1 se houver uma funçao de mesmo nome declarada
+// e retorna 0 caso contrário.
+int func_ja_declarada (char * nome);
+
+// Função que retorna 1 se houver uma variável de mesmo nome declarada
+// e retorna 0 caso contrário.
+int var_ja_declarada (char * nome);
+
+//Função que retorna 1 se já houver uma variavel decladara no escopo 
+//com o mesmo nome e retorna 0 caso contrário
+int var_ja_declarada_no_escopo(char *nome, char* escopo);
+
+// Função que retorna o tipo de uma dada função
+// assume-se que a função está declarada.
+void retorna_tipo_func (char *nome, Tipo* tipo_c);
+
+
+//Função que retorna 1 se houver uma variável global com o nome dado e
+// retorna 0 caso contrário
+int var_tem_global(char *nome);
 
 /* Procedimento imprimeTabSim imprime
 *   uma lista formatada do conteudo da tabela de simbolos
