@@ -100,6 +100,9 @@ int var_ja_declarada_no_escopo(char *nome, char* escopo);
 // assume-se que a função está declarada.
 void retorna_tipo_func (char *nome, Tipo* tipo_c);
 
+// Função que retorna o tipo de uma dada variável
+// assume-se que a função está declarada.
+void retorna_tipo_var (char* nome, char* escopo, Tipo* tipo_c);
 
 //Função que retorna 1 se houver uma variável global com o nome dado e
 // retorna 0 caso contrário

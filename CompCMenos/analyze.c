@@ -104,7 +104,7 @@ static void insereNo( NoArvore * t){
                             printf("Erro Semântico  na linha %d\n\tVariável %s não declarada\n",t->numlinha,t->atrib.nome);
                         }else if (var_ja_declarada_no_escopo(t->atrib.nome, escopo) == 1){
                             //mesmo escopo
-                            retorna_tipo_func(t->atrib.nome,tipo_c);
+                            retorna_tipo_var(t->atrib.nome,escopo,tipo_c);
                             if(t->tipo_c == Void){
                                 t->tipo_c = *tipo_c;
                             }
@@ -114,10 +114,10 @@ static void insereNo( NoArvore * t){
                                 Erro = true;
                                 printf("Erro Semântico  na linha %d\n\tVariável %s não declarada\n",t->numlinha,t->atrib.nome);
                             }else{
-                                retorna_tipo_func(t->atrib.nome,tipo_c);
-                                if(t->tipo_c == Void){
-                                    t->tipo_c = *tipo_c;
-                                }
+                                retorna_tipo_var(t->atrib.nome,"global",tipo_c);
+                                //if(t->tipo_c == Void){
+                                t->tipo_c = *tipo_c;
+                                //}
                                 //variável é global. atualizar linhas
                                 insere_tab_sim(t->atrib.nome,t->numlinha,0,"global",t->tipo_c,0);
                             }
@@ -144,6 +144,7 @@ static void checaNo(NoArvore * t){
                 case E_Op:
                     if ((t->filho[0]->tipo_c != Integer) ||(t->filho[1]->tipo_c != Integer))
                         typeError(t,"Operação aplicada entre não inteiros!\n");
+                        
                     if ((t->atrib.op == IGUALIGUAL) || (t->atrib.op == DIF)|| (t->atrib.op == MENOR)|| (t->atrib.op == MENIGUAL)|| (t->atrib.op == MAIOR)|| (t->atrib.op == MAIIGUAL))
                         t->tipo_c = Boolean;
                     else
