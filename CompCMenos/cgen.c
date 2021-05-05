@@ -4,6 +4,7 @@ static int tempnum = 1;
 static int labelnum = 0;
 static int numenderecos = 0;
 static int param = 0;
+static bool nao_avance_irmao = false;
 static char* escopo = "global";
 static char* nome_var;
 static void cGen (NoArvore * arv);
@@ -63,12 +64,14 @@ static void genStmt( NoArvore * arv)
          p1 = arv->filho[1];
          int npar = 0;
          tempnum++;
+         nao_avance_irmao = true;
          while(p1!= NULL){
             cGen(p1);
             printf("(PARAM, $t%d, ,  )\n", tempnum++);
             p1 = p1->irmao;
             npar++;
          }
+         nao_avance_irmao = false;
          printf("(CALL, %s, %d, $t%d)\n", arv->atrib.nome, npar, tempnum);
          break;
       default:
@@ -94,6 +97,7 @@ static void genDecl( NoArvore * arv)
          cGen(p1);//args
          param = 0;
          cGen(p2);//corpo
+         printf("(END,  %s,  ,  )\n",arv->atrib.nome);
          numenderecos = 0;
          break;
       case D_var:
@@ -134,15 +138,22 @@ static void genExp( NoArvore * arv)
     case E_Num :
       tempnum++;
       printf("(LOAD, $t%d, %d,  )\n", tempnum, arv->atrib.val);
-      numenderecos++;
       break;
     
     case E_Id :
       if(strcmp(arv->atrib.nome, "void")==0)   break;
-      tempnum++;
-      printf("(LOAD, $t%d, %s,  )\n", tempnum, arv->atrib.nome);
+      if(arv->filho[0] != NULL){
+        cGen(arv->filho[0]);
+        int t1 = tempnum;
+        tempnum++;
+        printf("(MUL, $t%d, 4, $t%d )\n", t1, tempnum);
+        tempnum++;
+        printf("(LOAD, $t%d, %s, $t%d )\n", tempnum, arv->atrib.nome, tempnum-1);
+      }else{
+        tempnum++;
+        printf("(LOAD, $t%d, %s,  )\n", tempnum, arv->atrib.nome);
+      }
       nome_var = arv->atrib.nome;//perigoso
-      numenderecos++;
       break; 
 
     case E_Op :
@@ -212,7 +223,9 @@ static void cGen( NoArvore * arv)
       default:
         break;
     }
-    cGen(arv->irmao);
+    if(nao_avance_irmao == false){
+        cGen(arv->irmao);
+    }
   }
 }
 
@@ -220,5 +233,5 @@ static void cGen( NoArvore * arv)
 // recursiva cGen, que percorre a arvore sintática
 void geraCod(NoArvore * arv){    
     cGen(arv);
-    printf("HALT\n\n");
+    printf("(HALT, , , )\n\n");
 }

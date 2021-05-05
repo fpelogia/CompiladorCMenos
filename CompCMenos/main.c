@@ -31,11 +31,9 @@ int main(){
     if(!Erro)
         checaTipos(arvoreSintatica);
 
-/*
     printf("\n\n============  Código Intermediário (3 endereços)  ============\n\n");
     if(!Erro)
         geraCod(arvoreSintatica);
-        */
     fclose(arq_cod_fonte);
     return 0;
 }

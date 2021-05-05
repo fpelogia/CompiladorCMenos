@@ -324,3 +324,32 @@ char* nome_token(Token t){
     return nome;
 }
 
+void inicializaPilha(Pilha *P){
+    P = malloc(sizeof(Pilha*));
+    P->numelementos = 0;
+    P->topo = NULL;
+}
+
+void push(Pilha *P, char* nome){
+    TNome *NomeStr = malloc(sizeof(TNome*));
+    NomeStr->nome = strdup(nome);
+    NomeStr->abaixo = P->topo;
+    P->topo = NomeStr;
+    P->numelementos ++;
+}
+
+char* pop(Pilha *P){
+    char *nome = NULL;
+    if (P->numelementos != 0){// pilha não vazia
+        nome = strdup(P->topo->nome);
+        TNome *topoAntigo;
+        topoAntigo = P->topo;
+        P->topo = topoAntigo->abaixo;
+        P->numelementos --;
+        nome = strdup(topoAntigo->nome);
+        free(topoAntigo);
+    }
+    return nome;
+}
+
+

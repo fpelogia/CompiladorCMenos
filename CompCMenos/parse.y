@@ -6,13 +6,13 @@
 static char * nomeSalvo; // para uso geral em IDs
 static char * nomeVarSalvo; // para uso em atribuições
 static char * nomeFuncDecl; // para uso em declaracao de funções
-static char * nomeFunc; // para uso em funções
+static Pilha nomeFunc; // para uso em funções
+static bool pilha_ja_inicializada = false; // já inicializada pilha
 static int numLinhaSalva;
 static int numLinhaSalvaF;
 static NoArvore* arvoreSalva; /* armazena árvore para retornar depois */
 static int yylex();
 int yyerror(char *message);
-
 %}
 
 %token IF ELSE WHILE RETURN INT VOID
@@ -306,13 +306,17 @@ fator       : ABREPAR exp FECHAPAR {$$ = $1;}
                     $$->tipo_c = Integer;
                   }
             ;
-ativacao    : ID { nomeFunc = copiaString(ID_nome);
+ativacao    : ID { 
+                   if(pilha_ja_inicializada == false){
+                      inicializaPilha(&nomeFunc);
+                   }
+                   push(&nomeFunc,copiaString(ID_nome));
                    numLinhaSalva = numlinha;
-                 }
+                                                       }
             ABREPAR args FECHAPAR
                  { $$ = novoNoStmt(S_Chamada);
                    $$->filho[1] = $4; // filho direito
-                   $$->atrib.nome = nomeFunc;
+                   $$->atrib.nome = pop(&nomeFunc);
                    $$->numlinha = numLinhaSalva;
                  }
             ;

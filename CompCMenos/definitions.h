@@ -123,7 +123,22 @@ void checaTipos(NoArvore * arv);
 // Função que gera o código intermediário de 3 endereços
 // a partir da árvore sintática e o armazena no arquivo
 // arq
+
+//==================================== Pilha ====================================
 void geraCod(NoArvore * arv);
 
+typedef struct SNome{
+    char *nome;
+    struct SNome *abaixo;
+}TNome;
 
+typedef struct {
+    int numelementos;
+    TNome* topo;
+}Pilha;
 
+void push(Pilha *P, char* nome);
+char* pop(Pilha *P);
+void inicializaPilha(Pilha *P);
+
+//==================== Geração de Cód. Intermediário ===========================

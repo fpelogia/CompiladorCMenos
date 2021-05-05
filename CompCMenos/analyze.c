@@ -115,9 +115,9 @@ static void insereNo( NoArvore * t){
                                 printf("Erro Semântico  na linha %d\n\tVariável %s não declarada\n",t->numlinha,t->atrib.nome);
                             }else{
                                 retorna_tipo_var(t->atrib.nome,"global",tipo_c);
-                                //if(t->tipo_c == Void){
-                                t->tipo_c = *tipo_c;
-                                //}
+                                if(t->tipo_c == Void){
+                                    t->tipo_c = *tipo_c;
+                                }
                                 //variável é global. atualizar linhas
                                 insere_tab_sim(t->atrib.nome,t->numlinha,0,"global",t->tipo_c,0);
                             }
@@ -161,13 +161,9 @@ static void checaNo(NoArvore * t){
                         typeError(t->filho[0],"Condicional do If não Booleano\n");
                     break;
                 case S_Atrib:
-                    if (t->filho[1]->tipo_c != Integer)
-                        typeError(t->filho[1],"Atribuição de valor não inteiro\n");
+                    if (t->filho[1]->tipo_c != t->filho[0]->tipo_c)
+                        typeError(t->filho[1],"Atribuição com tipos diferentes\n");
                     break;
-               // case WriteK:
-               //     if (t->filho[0]->tipo_c != Integer)
-               //         typeError(t->filho[0],"write of non-integer value");
-               //     break;
                 case S_While:
                     if (t->filho[0]->tipo_c == Integer)
                         typeError(t->filho[0],"Condicional do While não Booleano\n");
