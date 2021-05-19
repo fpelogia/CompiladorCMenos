@@ -323,7 +323,7 @@ char* nome_token(Token t){
     }
     return nome;
 }
-
+//======================================= PILHA ===============================================
 void inicializaPilha(Pilha *P){
     P = malloc(sizeof(Pilha*));
     P->numelementos = 0;
@@ -352,4 +352,40 @@ char* pop(Pilha *P){
     return nome;
 }
 
+// =========================== LISTA DE QUADRUPLAS ===============================
+
+void inicializaListaQuad(ListaQuad *lq){
+    lq->prim = NULL;
+}
+
+void insereQuad(ListaQuad *lq, char *op, char *c1, char *c2, char *c3){
+    NoQuad *novoNoQ = malloc(sizeof(NoQuad*));
+    Quad *novaQ = malloc(sizeof(Quad*));
+    novaQ->op = strdup(op);
+    novaQ->c1 = strdup(c1);
+    novaQ->c2 = strdup(c2);
+    novaQ->c3 = strdup(c3);
+    novoNoQ->quad = novaQ;
+    novoNoQ->prox = NULL;
+    
+    if(lq->prim != NULL){
+        NoQuad* lq_p = lq->prim;
+        while(lq_p->prox != NULL){
+            lq_p = lq_p->prox;
+            //lq_p->prox = novoNoQ;
+        }
+        lq_p->prox = novoNoQ;
+    }else{
+        lq->prim = novoNoQ;
+    }
+}
+
+void imprimeListaQuad(ListaQuad *lq){
+    NoQuad* lq_p = lq->prim;
+    while(lq_p->prox != NULL){
+        printf("(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
+        lq_p = lq_p->prox;
+    }
+    printf("(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
+}
 

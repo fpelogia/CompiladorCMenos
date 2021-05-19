@@ -141,4 +141,26 @@ void push(Pilha *P, char* nome);
 char* pop(Pilha *P);
 void inicializaPilha(Pilha *P);
 
-//==================== Geração de Cód. Intermediário ===========================
+//==================== Geração de Cód. Intermediário =========================
+typedef struct {
+    char* op;
+    char* c1;
+    char* c2;
+    char* c3;
+}Quad;
+
+typedef struct SNoQuad{
+    Quad *quad;
+    struct SNoQuad *prox;
+}NoQuad;
+
+typedef struct{
+    NoQuad* prim;
+}ListaQuad;
+
+void inicializaListaQuad(ListaQuad *lq);
+void insereQuad(ListaQuad* lq, char* op, char* c1, char* c2, char*c3);
+void imprimeListaQuad(ListaQuad *lq);
+
+extern ListaQuad CodInter; // variável global com a lista de quádruplas (cod. intermediário)
+
