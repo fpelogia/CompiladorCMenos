@@ -13,7 +13,12 @@ void imprimeTokens(char* nomearq){
         if(fgets(linha, MAX_LINHA, fc) == NULL){
             break;
         }
-        printf("\n%d: %s",numlinha, linha);
+        if(linha[0] == '\n'){
+            if(fgets(linha, MAX_LINHA, fc) == NULL){
+                break;
+            }
+        }
+
         Token rt;
         int nlsalva;
         if(primeira_vez){
@@ -22,6 +27,7 @@ void imprimeTokens(char* nomearq){
         }else{
             nlsalva = numlinha;
         }
+        printf("\n%d: %s", nlsalva, linha);
         if(leftover){
             if(rt == ID || rt == NUM){
                 printf("\t%d: %s, val= %s\n",numlinha, nome_token(rt), yytext);

@@ -3,6 +3,8 @@
 static int tempnum = 1;
 static int labelnum = 0;
 static int param = 0;
+static char* param_list[500]; // Máximo de 500 parâmetros
+static int param_list_size = 0;
 static bool nao_avance_irmao = false;
 static char* escopo = "global";
 static char* nome_var;
@@ -138,6 +140,11 @@ static void genDecl( NoArvore * arv)
          escopo = arv->atrib.nome;
          param = 1;
          cGen(p1);//args
+         //loads dos args
+         int i;
+         for (i=0;i<param_list_size;i++){
+            insereQuad(&CodInter, "LOAD",treg(tempnum++), param_list[i], " ");
+         }
          param = 0;
          cGen(p2);//corpo
          //printf("(END,  %s,  ,  )\n",arv->atrib.nome);
@@ -147,7 +154,8 @@ static void genDecl( NoArvore * arv)
          if(param == 1){
             //printf("(ARG, %s, %s, %s)\n", retStrTipo(arv->tipo_c), arv->atrib.nome, escopo);
             insereQuad(&CodInter, "ARG", retStrTipo(arv->tipo_c), arv->atrib.nome, escopo);
-
+            param_list[param_list_size++] = strdup(arv->atrib.nome);
+            
          }else{
             if(arv->filho[0] != NULL){
                 //printf("(ALLOC, %s, %s, %d)\n", arv->atrib.nome, escopo, arv->filho[0]->atrib.val);
@@ -239,6 +247,10 @@ static void genExp( NoArvore * arv)
             case MENOR :
                //printf("(LT, $t%d, $t%d, $t%d)\n", t1, t2, tempnum);
                insereQuad(&CodInter, "LT", treg(t1), treg(t2), treg(tempnum));
+               break;
+            case MAIOR :
+               //printf("(GT, $t%d, $t%d, $t%d)\n", t1, t2, tempnum);
+               insereQuad(&CodInter, "GT", treg(t1), treg(t2), treg(tempnum));
                break;
             case IGUALIGUAL :
                //printf("(EQUAL, $t%d, $t%d, $t%d)\n", t1, t2, tempnum);

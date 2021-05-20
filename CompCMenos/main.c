@@ -17,7 +17,7 @@ int main(){
     imprimeTokens("sample.c");    
     fclose(arq_cod_fonte);
     arq_cod_fonte = fopen("sample.c","r");
-    numlinha = 1;
+    numlinha = 0;
 
     
     NoArvore* arvoreSintatica;
