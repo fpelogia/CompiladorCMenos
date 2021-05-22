@@ -236,6 +236,7 @@ exp         : var IGUAL exp
                 { $$ = novoNoStmt(S_Atrib);
                   $$->filho[0] = $1;
                   $$->filho[1] = $3;
+                  $$->tipo_c = Integer;
                   $$->atrib.op = IGUAL; //IGUAL
                 }
             | simples_exp {$$ = $1;}
@@ -309,6 +310,7 @@ fator       : ABREPAR exp FECHAPAR {$$ = $1;}
 ativacao    : ID { 
                    if(pilha_ja_inicializada == false){
                       inicializaPilha(&nomeFunc);
+                      pilha_ja_inicializada = true;
                    }
                    push(&nomeFunc,copiaString(ID_nome));
                    numLinhaSalva = numlinha;

@@ -7,7 +7,7 @@ static char* param_list[500]; // Máximo de 500 parâmetros
 static int param_list_size = 0;
 static bool nao_avance_irmao = false;
 static char* escopo = "global";
-static char* nome_var;
+static Pilha nome_var_pilha;
 static void cGen (NoArvore * arv);
 ListaQuad CodInter;
 
@@ -88,12 +88,14 @@ static void genStmt( NoArvore * arv)
          tempnum++;
          p1 = arv->filho[0];
          p2 = arv->filho[1];
+         push(&nome_var_pilha, p1->atrib.nome);
          cGen(p1);
          t1 = tempnum;
          cGen(p2);
          t2 = tempnum;
          //printf("(ASSIGN, $t%d, $t%d,  )\n",t1, t2);
          insereQuad(&CodInter,"ASSIGN", treg(t1), treg(t2), " ");
+         char *nome_var = pop(&nome_var_pilha);
          //printf("(STORE, %s, $t%d,  )\n",nome_var, t1);
          insereQuad(&CodInter,"STORE",nome_var, treg(t1), " ");
          break;
@@ -149,6 +151,7 @@ static void genDecl( NoArvore * arv)
          cGen(p2);//corpo
          //printf("(END,  %s,  ,  )\n",arv->atrib.nome);
          insereQuad(&CodInter, "END",arv->atrib.nome, " ", " ");
+         param_list_size = 0;
          break;
       case D_var:
          if(param == 1){
@@ -216,7 +219,6 @@ static void genExp( NoArvore * arv)
         //printf("(LOAD, $t%d, %s,  )\n", tempnum, arv->atrib.nome);
         insereQuad(&CodInter, "LOAD", treg(tempnum), arv->atrib.nome, " ");
       }
-      nome_var = arv->atrib.nome;//perigoso
       break; 
 
     case E_Op :
@@ -309,6 +311,7 @@ static void cGen( NoArvore * arv)
 //gera o código intermediário utilizando a Função
 // recursiva cGen, que percorre a arvore sintática
 void geraCod(NoArvore * arv){    
+    inicializaPilha(&nome_var_pilha);
     cGen(arv);
     //printf("(HALT, , , )\n\n");
     insereQuad(&CodInter, "HALT", " ", " ", " ");

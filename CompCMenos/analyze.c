@@ -7,7 +7,7 @@ static char* escopo = "global";
 
 
 static void typeError(NoArvore * t, char * message){
-    if(t->atrib.nome){
+    if(t->tipo_de_no == TExp && t->tipo.exp == E_Id){
         fprintf(stdout,"Erro Semântico:%s na linha %d:\n\t%s\n", t->atrib.nome, t->numlinha, message);
         Erro = true;
     }else{
@@ -144,7 +144,11 @@ static void checaNo(NoArvore * t){
                 case E_Op:
                     if ((t->filho[0]->tipo_c != Integer) ||(t->filho[1]->tipo_c != Integer))
                         typeError(t,"Operação aplicada entre não inteiros!\n");
+                    else{
+                        t->tipo_c = Integer;
+                    }
                         
+                    t->tipo_c = Integer;
                     if ((t->atrib.op == IGUALIGUAL) || (t->atrib.op == DIF)|| (t->atrib.op == MENOR)|| (t->atrib.op == MENIGUAL)|| (t->atrib.op == MAIOR)|| (t->atrib.op == MAIIGUAL))
                         t->tipo_c = Boolean;
                     else
@@ -161,8 +165,9 @@ static void checaNo(NoArvore * t){
                         typeError(t->filho[0],"Condicional do If não Booleano\n");
                     break;
                 case S_Atrib:
-                    if (t->filho[1]->tipo_c != t->filho[0]->tipo_c)
+                    if (t->filho[1]->tipo_c != t->filho[0]->tipo_c){
                         typeError(t->filho[1],"Atribuição com tipos diferentes\n");
+                    }
                     break;
                 case S_While:
                     if (t->filho[0]->tipo_c == Integer)
