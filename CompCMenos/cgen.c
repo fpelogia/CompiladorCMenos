@@ -1,6 +1,6 @@
 #include "definitions.h"
 
-static int tempnum = 1;
+static int tempnum = 0;
 static int labelnum = 0;
 static int param = 0;
 static char* param_list[500]; // Máximo de 500 parâmetros
@@ -85,7 +85,6 @@ static void genStmt( NoArvore * arv)
          insereQuad(&CodInter,"LABEL",lnum(l2), " ", " ");
          break;
       case S_Atrib:
-         tempnum++;
          p1 = arv->filho[0];
          p2 = arv->filho[1];
          push(&nome_var_pilha, p1->atrib.nome);
@@ -97,29 +96,32 @@ static void genStmt( NoArvore * arv)
          insereQuad(&CodInter,"ASSIGN", treg(t1), treg(t2), " ");
          char *nome_var = pop(&nome_var_pilha);
          //printf("(STORE, %s, $t%d,  )\n",nome_var, t1);
-         insereQuad(&CodInter,"STORE",nome_var, treg(t1), " ");
+         if(p1->filho[0] != NULL){
+            insereQuad(&CodInter,"STORE",nome_var, treg(t1), treg(t1-1));// vetor
+         }else{
+            insereQuad(&CodInter,"STORE",nome_var, treg(t1), " ");
+         }
          break;
       case S_Retorno:
          p1 = arv->filho[0];
          cGen(p1);
          //printf("(RET, $t%d,  ,  )\n", tempnum++);
-         insereQuad(&CodInter, "RET", treg(tempnum++), " ", " ");
+         insereQuad(&CodInter, "RET", treg(tempnum), " ", " ");
          break;
       case S_Chamada:
          p1 = arv->filho[1];
          int npar = 0;
-         tempnum++;
          nao_avance_irmao = true;
          while(p1!= NULL){
             cGen(p1);
             //printf("(PARAM, $t%d, ,  )\n", tempnum++);
-            insereQuad(&CodInter, "PARAM", treg(tempnum++), " ", " ");
+            insereQuad(&CodInter, "PARAM", treg(tempnum), " ", " ");
             p1 = p1->irmao;
             npar++;
          }
          nao_avance_irmao = false;
          //printf("(CALL, %s, %d, $t%d)\n", arv->atrib.nome, npar, tempnum);
-         insereQuad(&CodInter, "CALL", arv->atrib.nome, numtostr(npar), treg(tempnum));
+         insereQuad(&CodInter, "CALL", arv->atrib.nome, numtostr(npar), treg(++tempnum));
          break;
       default:
             break;
@@ -139,14 +141,19 @@ static void genDecl( NoArvore * arv)
          p2 = arv->filho[1] ;
          //printf("(FUN,  %s, %s,  )\n", retStrTipo(arv->tipo_c), arv->atrib.nome);
          insereQuad(&CodInter, "FUN",retStrTipo(arv->tipo_c), arv->atrib.nome, " ");
-         escopo = arv->atrib.nome;
+         if(strcmp(escopo, arv->atrib.nome) != 0){
+            escopo = arv->atrib.nome;
+            tempnum = 0;
+         }
          param = 1;
          cGen(p1);//args
          //loads dos args
          int i;
          for (i=0;i<param_list_size;i++){
-            insereQuad(&CodInter, "LOAD",treg(tempnum++), param_list[i], " ");
+            insereQuad(&CodInter, "LOAD",treg(tempnum), param_list[i], " ");
+            tempnum = (tempnum + 1)%32;
          }
+         tempnum--;
          param = 0;
          cGen(p2);//corpo
          //printf("(END,  %s,  ,  )\n",arv->atrib.nome);
@@ -169,24 +176,6 @@ static void genDecl( NoArvore * arv)
             }
          }
          break;
-
-     /* case AssignK:
-         if (TraceCode) emitComment("-> assign") ;
-         cGen(arv->filho[0]);
-         loc = st_lookup(arv->atrib.nome);
-         emitRM("ST",ac,loc,gp,"assign: store value");
-         if (TraceCode)  emitComment("<- assign") ;
-         break; 
-
-      case ReadK:
-         emitRO("IN",ac,0,0,"read integer value");
-         loc = st_lookup(arv->atrib.nome);
-         emitRM("ST",ac,loc,gp,"read: store value");
-         break;
-      case WriteK:
-         cGen(arv->filho[0]);
-         emitRO("OUT",ac,0,0,"write ac");
-         break;*/
       default:
          break;
     }
@@ -198,8 +187,8 @@ static void genExp( NoArvore * arv)
   switch (arv->tipo.exp) {
 
     case E_Num :
-      tempnum++;
       //printf("(LOAD, $t%d, %d,  )\n", tempnum, arv->atrib.val);
+      tempnum = (tempnum + 1)%32;
       insereQuad(&CodInter, "LOAD", treg(tempnum), numtostr(arv->atrib.val), " ");
       break;
     
@@ -208,14 +197,14 @@ static void genExp( NoArvore * arv)
       if(arv->filho[0] != NULL){
         cGen(arv->filho[0]);
         int t1 = tempnum;
-        tempnum++;
-        //printf("(MUL, $t%d, 4, $t%d )\n", t1, tempnum);
+        tempnum = (tempnum + 1)%32;
+       //printf("(MUL, $t%d, 4, $t%d )\n", t1, tempnum);
         insereQuad(&CodInter, "MUL", treg(t1), "4", treg(tempnum));
-        tempnum++;
+        tempnum = (tempnum + 1)%32;
         //printf("(LOAD, $t%d, %s, $t%d )\n", tempnum, arv->atrib.nome, tempnum-1);
         insereQuad(&CodInter, "LOAD", treg(tempnum), arv->atrib.nome, treg(tempnum-1));
       }else{
-        tempnum++;
+        tempnum = (tempnum + 1)%32;
         //printf("(LOAD, $t%d, %s,  )\n", tempnum, arv->atrib.nome);
         insereQuad(&CodInter, "LOAD", treg(tempnum), arv->atrib.nome, " ");
       }
@@ -228,7 +217,7 @@ static void genExp( NoArvore * arv)
          int t1 = tempnum;
          cGen(p2);
          int t2 = tempnum;
-         tempnum++;
+         tempnum  = (tempnum + 1)%32;
          switch (arv->atrib.op) {
             case MAIS :
                //printf("(ADD, $t%d, $t%d, $t%d)\n", t1, t2, tempnum);
@@ -285,20 +274,22 @@ static void genExp( NoArvore * arv)
   }
 } 
 
-static void cGen( NoArvore * arv)
-{ if (arv != NULL)
-  { switch (arv->tipo_de_no) {
-      case TStmt:
-        genStmt(arv);
-        break;
-      case TExp:
-        genExp(arv);
-        break;
-      case TDecl:
-        genDecl(arv);
-        break;
-      default:
-        break;
+static void cGen( NoArvore * arv){
+    if(tempnum == 32)
+        tempnum = 0;
+    if (arv != NULL){
+        switch (arv->tipo_de_no) {
+            case TStmt:
+                genStmt(arv);
+                break;
+            case TExp:
+                genExp(arv);
+                break;
+            case TDecl:
+                genDecl(arv);
+                break;
+            default:
+                break;
     }
     if(nao_avance_irmao == false){
         cGen(arv->irmao);
