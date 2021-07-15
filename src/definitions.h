@@ -2,8 +2,11 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdint.h> // int32_t e uint32_t
 
 #define MAX_TAM_TOKEN 100
+
+#define MEM_SLOTS 64 // 64 slots de 32 bits cada 
 
 #ifndef YYPARSER // Não importa o arquivo quando chamado pelo parse.y
 #include "parse.tab.h" //Gerado pela flag "-d" do bison
@@ -163,4 +166,57 @@ void insereQuad(ListaQuad* lq, char* op, char* c1, char* c2, char*c3);
 void imprimeListaQuad(ListaQuad *lq);
 
 extern ListaQuad CodInter; // variável global com a lista de quádruplas (cod. intermediário)
+
+// =================== Geração de Código Assembly =============================
+void percorreListaQuad(ListaQuad *lq);
+void gera_asm_R(char* op, char* c1, char* c2, char* c3);
+int eh_operacao(char* op);
+int var_id(char * var_name);
+void gera_asm_R_LOAD(char* c1, char* c2);
+
+// jeito que acho que deve ser:
+//typedef uint32_t endereco_m;
+typedef char* endereco_m; // por enquanto, para testar, seja o nome da funcao
+
+/*
+typedef struct variavel_s {
+    int deslocamento;// deslocamento em relação ao endereço
+    char *nome; // nome da variável
+    int32_t conteudo; //conteudo da variável
+    struct variavel_s* prox;
+}variavel;
+*/
+/*
+typedef char* variavel; // por enquanto, para testar, seja o nome da variavel
+
+typedef struct area_ativacao_s {
+    endereco_m func_fp; // endereço de memória da área de ativação 
+    endereco_m quem_chamou; // endereço de memória da função que chamou
+    int32_t valor_retorno; // valor de retorno da função
+    variavel *lista_args; // lista de argumentos
+    variavel *lista_var_locais; // lista de variáveis locais
+    struct area_ativacao_s *prox;// próxima área de ativação
+} area_ativacao;
+
+// Guarda dados referentes às funções chamadas
+area_ativacao *listaChamadas;// Lista com as áreas de ativação
+
+
+void cadastraChamada(endereco_m func, endereco_m escopo, variavel* lista_args){
+    area_ativacao* lc_p = listaChamadas;
+    while(lc_p->prox != NULL){
+        lc_p = lc_p->prox;
+    }
+    area_ativacao* nova_aa = malloc(sizeof(area_ativacao));
+    nova_aa->func_fp = func;
+    nova_aa->quem_chamou = escopo;
+
+}
+
+*/
+/*
+ * Pensar nas funções de interface
+ * */
+
+
 

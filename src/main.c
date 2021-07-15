@@ -34,6 +34,12 @@ int main(){
     printf("\n\n============  Código Intermediário ============\n\n");
     if(!Erro)
         geraCod(arvoreSintatica);
+    
+    imprimeListaQuad(&CodInter); // Imprime Código Intermediário
+
+    percorreListaQuad(&CodInter); // Imprime Código Assembly
+
+    printf("\n");
     fclose(arq_cod_fonte);
     return 0;
 }

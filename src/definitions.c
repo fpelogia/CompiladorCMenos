@@ -395,3 +395,49 @@ void imprimeListaQuad(ListaQuad *lq){
     printf("(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
 }
 
+void percorreListaQuad(ListaQuad *lq){
+    printf("\n=============== Código Assembly ==================\n\n");
+    NoQuad* lq_p = lq->prim;
+    while(lq_p->prox != NULL){
+        //printf("(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
+        if(eh_operacao(lq_p->quad->op))   gera_asm_R(lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);        
+        if(strcmp(lq_p->quad->op, "LOAD") == 0){
+            gera_asm_R_LOAD(lq_p->quad->c1, lq_p->quad->c2);
+        }
+        lq_p = lq_p->prox;
+    }
+    //printf("(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
+}
+
+void gera_asm_R_LOAD(char* c1, char* c2){
+    if((c2[0] >= 48) && (c2[0] <= 57)){
+        // campo 2 é um número
+        printf("addi $%s, $t0, %s\n", c1, c2);
+    }else{
+        // campo 2 é o nome de uma variável
+        // [TODO]: no futuro trocar fp pelo número do reg.
+        printf("lw $%s, $fp(%d)\n", c1, var_id(c2));
+    }
+}
+
+int var_id(char * var_name){
+    return 1;
+}
+void gera_asm_R(char* op, char* c1, char* c2, char* c3){
+    if(strcmp(op, "ADD") == 0){
+        printf("\t\t\t\tadd $%s, $%s, $%s\n", c3, c1, c2);
+    }
+    if(strcmp(op, "SUB") == 0){
+        printf("\t\t\t\tsub $%s, $%s, $%s\n", c3, c1, c2);
+    }
+    if(strcmp(op, "MUL") == 0){
+        printf("\t\t\t\tmul $%s, $%s, $%s\n", c3, c1, c2);
+    }
+    if(strcmp(op, "DIV") == 0){
+        printf("\t\t\t\tdiv $%s, $%s, $%s\n", c3, c1, c2);
+    }
+}
+
+int eh_operacao(char* op){
+    return strcmp(op, "ADD") == 0 || strcmp(op, "SUB") == 0  || strcmp(op, "MUL") == 0 || strcmp(op, "DIV") == 0 ;
+}
