@@ -8,6 +8,10 @@
 
 #define MEM_SLOTS 64 // 64 slots de 32 bits cada 
 
+#define MAX_FUNC_DECL 50 // máximo de funções a serem declaradas
+
+#define GLOBAL_PART_SIZE 30 // numero de slots da memória para as coisas globais
+
 #ifndef YYPARSER // Não importa o arquivo quando chamado pelo parse.y
 #include "parse.tab.h" //Gerado pela flag "-d" do bison
 #define ENDFILE 0
@@ -168,11 +172,25 @@ void imprimeListaQuad(ListaQuad *lq);
 extern ListaQuad CodInter; // variável global com a lista de quádruplas (cod. intermediário)
 
 // =================== Geração de Código Assembly =============================
+
+extern char* lista_escopos[MAX_FUNC_DECL];
+extern int tam_lista_escopos;
+extern int numlocals[MAX_FUNC_DECL];//número de variáveis de certo escopo
+
+void registraEscopo(char* escopo);
+int indiceEscopo(char* escopo);
+
 void percorreListaQuad(ListaQuad *lq);
 void gera_asm_R(char* op, char* c1, char* c2, char* c3);
 int eh_operacao(char* op);
-int var_id(char * var_name);
-void gera_asm_R_LOAD(char* c1, char* c2);
+int var_id(char * nome, char* escopo); // corpo está em symtab.c
+void gera_asm_LOAD(char* c1, char* c2);
+void gera_asm_FUN(char* nome);
+void gera_asm_ASSIGN(char* c1, char* c2);
+void gera_asm_STORE(char* c1, char* c2);
+void gera_asm_RET(char* c1);
+void gera_asm_LAB(char* c1);
+void gera_asm_END(char* c1);
 
 // jeito que acho que deve ser:
 //typedef uint32_t endereco_m;

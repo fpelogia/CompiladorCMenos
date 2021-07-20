@@ -6,6 +6,11 @@
 int numlinha = 0;
 FILE * arq_cod_fonte;
 bool Erro;
+
+char* lista_escopos[MAX_FUNC_DECL];
+int tam_lista_escopos = 0;
+int numlocals[MAX_FUNC_DECL];//número de variáveis de certo escopo
+
 int main(){
 
     arq_cod_fonte = fopen("sample.c","r");

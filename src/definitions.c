@@ -1,5 +1,7 @@
 #include "definitions.h"
 
+static char* escopo = "global";
+
 void imprimeTokens(char* nomearq){
     FILE* fc = fopen("sample.c","r");
     if(fc == NULL){
@@ -395,6 +397,22 @@ void imprimeListaQuad(ListaQuad *lq){
     printf("(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
 }
 
+void registraEscopo(char* escopo){
+    lista_escopos[tam_lista_escopos] = escopo; // salva nome da função;
+    if(tam_lista_escopos < MAX_FUNC_DECL){
+        tam_lista_escopos++;// registra declaração de nova função
+    }
+}
+
+int indiceEscopo(char* escopo){
+    int i = 0;
+    for(i = 0; i< tam_lista_escopos; i++){
+        if(strcmp(escopo, lista_escopos[i]) == 0){
+            return i; // cuidado futuramente, com escopo global....
+        }
+    }
+}
+
 void percorreListaQuad(ListaQuad *lq){
     printf("\n=============== Código Assembly ==================\n\n");
     NoQuad* lq_p = lq->prim;
@@ -402,39 +420,100 @@ void percorreListaQuad(ListaQuad *lq){
         //printf("(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
         if(eh_operacao(lq_p->quad->op))   gera_asm_R(lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);        
         if(strcmp(lq_p->quad->op, "LOAD") == 0){
-            gera_asm_R_LOAD(lq_p->quad->c1, lq_p->quad->c2);
+            gera_asm_LOAD(lq_p->quad->c1, lq_p->quad->c2);
         }
+
+        if(strcmp(lq_p->quad->op, "FUN") == 0){
+            escopo = lq_p->quad->c2;
+            gera_asm_FUN(lq_p->quad->c2);
+        }
+
+        if(strcmp(lq_p->quad->op, "ASSIGN") == 0){
+            gera_asm_ASSIGN(lq_p->quad->c1, lq_p->quad->c2);
+        }
+
+        if(strcmp(lq_p->quad->op, "STORE") == 0){
+            gera_asm_STORE(lq_p->quad->c1, lq_p->quad->c2);
+        }
+
+        if(strcmp(lq_p->quad->op, "RET") == 0){
+            gera_asm_RET(lq_p->quad->c1);
+        }
+
+        if(strcmp(lq_p->quad->op, "LAB") == 0){
+            gera_asm_LAB(lq_p->quad->c1);
+        }
+
+        if(strcmp(lq_p->quad->op, "END") == 0){
+            gera_asm_END(lq_p->quad->c1);
+        }
+
         lq_p = lq_p->prox;
     }
     //printf("(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
 }
 
-void gera_asm_R_LOAD(char* c1, char* c2){
+void gera_asm_FUN(char *nome){
+    int total_ativacoes = 0;
+    int i;
+    for (i = 1; i < tam_lista_escopos; i++){
+        total_ativacoes += 1 + numlocals[i];// [TODO]: vai ser alterado ao lidar com args
+    }
+    printf("%s:\n", nome);
+    printf("addi $fp, $t0, %d\n", GLOBAL_PART_SIZE + total_ativacoes);
+}
+
+void gera_asm_END(char* c1){
+    // c1: nome da função a ser terminada
+    printf("addi $fp, $t0, %d\n", GLOBAL_PART_SIZE);
+    tam_lista_escopos--; // [PERIGOSO]
+}
+
+void gera_asm_LAB(char* c1){
+    // c1: nome do label a ser criado
+    printf("%s:\n", c1);
+}
+
+void gera_asm_STORE(char* c1, char* c2){
+    // c1: nome da variável
+    // c2: registrador com valor
+    printf("sw $%s, $fp(%d)\n", c2, var_id(c1, escopo));
+}
+
+void gera_asm_RET(char* c1){
+    // c1: registrador com valor a ser retornado
+    // ideia: simplesmente carrega no endereço de memória que fp carrega
+    printf("sw $%s, $fp(0)\n", c1);
+}
+
+void gera_asm_ASSIGN(char* c1, char* c2){
+    printf("add $%s, $%s, $t0\n", c1, c2);
+}
+
+void gera_asm_LOAD(char* c1, char* c2){
     if((c2[0] >= 48) && (c2[0] <= 57)){
         // campo 2 é um número
         printf("addi $%s, $t0, %s\n", c1, c2);
     }else{
         // campo 2 é o nome de uma variável
         // [TODO]: no futuro trocar fp pelo número do reg.
-        printf("lw $%s, $fp(%d)\n", c1, var_id(c2));
+        printf("lw $%s, $fp(%d)\n", c1, var_id(c2, escopo));
     }
 }
 
-int var_id(char * var_name){
-    return 1;
-}
+
 void gera_asm_R(char* op, char* c1, char* c2, char* c3){
     if(strcmp(op, "ADD") == 0){
-        printf("\t\t\t\tadd $%s, $%s, $%s\n", c3, c1, c2);
+        printf("add $%s, $%s, $%s\n", c3, c1, c2);
     }
     if(strcmp(op, "SUB") == 0){
-        printf("\t\t\t\tsub $%s, $%s, $%s\n", c3, c1, c2);
+        printf("sub $%s, $%s, $%s\n", c3, c1, c2);
     }
     if(strcmp(op, "MUL") == 0){
-        printf("\t\t\t\tmul $%s, $%s, $%s\n", c3, c1, c2);
+        printf("mul $%s, $%s, $%s\n", c3, c1, c2);
     }
     if(strcmp(op, "DIV") == 0){
-        printf("\t\t\t\tdiv $%s, $%s, $%s\n", c3, c1, c2);
+        printf("div $%s, $%s, $%s\n", c3, c1, c2);
     }
 }
 

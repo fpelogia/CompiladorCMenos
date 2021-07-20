@@ -35,6 +35,7 @@ typedef struct listaDeBlocos
    { char * nome;
      char * escopo;
      int eh_funcao; // 0: variável // 1: função
+     int id; // utilizado na geração de código assembly
      Tipo tipo; 
      ListaDeLinhas linhas;
      int numbloco ; // utilizado ao criar
@@ -67,6 +68,7 @@ void insere_tab_sim( char * nome, int numlinha, int loc, char * escopo, Tipo tip
         l->escopo = eg;
     }else{
         l->escopo = escopo;
+        l->id = ++numlocals[indiceEscopo(escopo)]; // utilizado no gerador de cod. asm
     }
     l->tipo = tipo;
     l->eh_funcao = eh_funcao;
@@ -180,6 +182,22 @@ void retorna_tipo_var (char* nome, char* escopo, Tipo* tipo_c){
     }
 }
 
+// Função que retorna o id de uma certa variável.
+// É utilizada na geração do código assembly
+int var_id(char * nome, char* escopo){
+    int h = hash(nome);
+    ListaDeBlocos l =  Tabela_hash[h];
+    while (l != NULL){
+        if ((l->eh_funcao == 0)&&(strcmp(nome,l->nome) == 0)&&(strcmp(escopo, l->escopo) == 0)){
+            break;
+        }
+        l = l->prox;
+    }
+    if (l != NULL) {//encontrou a variável
+        return l->id;// retorna o id da variável
+    }
+    return -1; // espero que nunca chegue aqui, mas sei lá...
+}
 
 /* Procedimento imprimeTabSim imprime
 *   uma lista formatada do conteudo da tabela de simbolos
@@ -188,15 +206,15 @@ void retorna_tipo_var (char* nome, char* escopo, Tipo* tipo_c){
 
 void imprimeTabSim(FILE * listing)
 { int i;
-  fprintf(listing," | Nome:  Nro. bloco  Tipo:   Escopo:   Referenciado nas Linhas:\n");
-  fprintf(listing," | -----  ----------  ------  -------  ------------------------\n");
+  fprintf(listing," | Nome:      Id:   Tipo:   Escopo:   Referenciado nas Linhas:\n");
+  fprintf(listing," | -----      ---  ------  -------  ------------------------\n");
   for (i=0;i<SIZE;++i)
   { if (Tabela_hash[i] != NULL)
     { ListaDeBlocos l = Tabela_hash[i];
       while (l != NULL)
       { ListaDeLinhas t = l->linhas;
         fprintf(listing," |  %-6s ",l->nome);
-        fprintf(listing," |  %-2d ",l->numbloco);
+        fprintf(listing," |  %-1d ",l->id);
         fprintf(listing," |  %-5s ",retStrTipo(l->tipo));
         fprintf(listing,"|  %-11s|",l->escopo);
         while (t != NULL)

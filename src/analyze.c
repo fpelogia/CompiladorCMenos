@@ -36,6 +36,7 @@ static void insereNo( NoArvore * t){
                         if (func_ja_declarada(t->atrib.nome)==0){
                             insere_tab_sim(t->atrib.nome,t->numlinha,location++,"global",t->tipo_c,1);
                             escopo = t->atrib.nome;// escopo da função
+                            registraEscopo(escopo);
                         }else{
                             Erro = true;
                             printf("Erro Semântico na linha %d\n\tFunção %s já declarada!\n",t->numlinha,t->atrib.nome);
