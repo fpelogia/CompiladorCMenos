@@ -42,6 +42,7 @@ int main(){
     
     printf("\n\n============  Código Intermediário ============\n\n");
     inicializaListaQuad(&CodInter);
+    //inicializa_reg_escopo();
     if(!Erro)
         geraCod(arvoreSintatica);
     

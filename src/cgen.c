@@ -46,6 +46,7 @@ static void genStmt( NoArvore * arv)
 { NoArvore * p1, * p2, * p3;
   int savedLoc1,savedLoc2,currentLoc;
   int loc, t1,t2,t3,l1,l2,l3;
+  char* gambiarra;
   switch (arv->tipo.stmt) {
 
       case S_If:
@@ -98,9 +99,12 @@ static void genStmt( NoArvore * arv)
          //printf("(STORE, %s, $t%d,  )\n",nome_var, t1);
          if(p1->filho[0] != NULL){
             insereQuad(&CodInter,"STORE",nome_var, treg(t1), treg(t1-1));// vetor
+            libera_registrador(t1-1);
          }else{
             insereQuad(&CodInter,"STORE",nome_var, treg(t1), " ");
          }
+         libera_registrador(t1);
+         libera_registrador(t2);
          break;
       case S_Retorno:
          p1 = arv->filho[0];
@@ -121,7 +125,15 @@ static void genStmt( NoArvore * arv)
          }
          nao_avance_irmao = false;
          //printf("(CALL, %s, %d, $t%d)\n", arv->atrib.nome, npar, tempnum);
-         insereQuad(&CodInter, "CALL", arv->atrib.nome, numtostr(npar), treg(++tempnum));
+         
+         tempnum = usa_registrador();
+
+         gambiarra = malloc((strlen(arv->atrib.nome) + strlen(escopo))*sizeof(char));
+         strcpy(gambiarra, arv->atrib.nome);
+         strcat(gambiarra, "|");
+         strcat(gambiarra, escopo);
+         insereQuad(&CodInter, "CALL", gambiarra, numtostr(npar), treg(tempnum));
+         free(gambiarra);
          break;
       default:
             break;
@@ -143,7 +155,8 @@ static void genDecl( NoArvore * arv)
          insereQuad(&CodInter, "FUN",retStrTipo(arv->tipo_c), arv->atrib.nome, " ");
          if(strcmp(escopo, arv->atrib.nome) != 0){
             escopo = arv->atrib.nome;
-            tempnum = 0;
+            //tempnum = 0;
+            libera_todos_os_registradores();
          }
          param = 1;
          cGen(p1);//args
@@ -151,9 +164,14 @@ static void genDecl( NoArvore * arv)
          int i;
          for (i=0;i<param_list_size;i++){
             insereQuad(&CodInter, "LOAD",treg(tempnum), param_list[i], " ");
-            tempnum = (tempnum + 1)%32;
+            tempnum = usa_registrador();
+
+            //tempnum = (tempnum + 1)%32;
          }
-         tempnum--;
+
+         //tempnum--; [TODO]: PERIGOSOO--- PQ ISSO ESTAVA AQUI ?
+        
+
          param = 0;
          cGen(p2);//corpo
          //printf("(END,  %s,  ,  )\n",arv->atrib.nome);
@@ -188,7 +206,10 @@ static void genExp( NoArvore * arv)
 
     case E_Num :
       //printf("(LOAD, $t%d, %d,  )\n", tempnum, arv->atrib.val);
-      tempnum = (tempnum + 1)%32;
+      //tempnum = (tempnum + 1)%32;
+      tempnum = usa_registrador();
+
+
       insereQuad(&CodInter, "LOAD", treg(tempnum), numtostr(arv->atrib.val), " ");
       break;
     
@@ -197,14 +218,23 @@ static void genExp( NoArvore * arv)
       if(arv->filho[0] != NULL){
         cGen(arv->filho[0]);
         int t1 = tempnum;
-        tempnum = (tempnum + 1)%32;
+        //tempnum = (tempnum + 1)%32;
+        tempnum = usa_registrador();
+
        //printf("(MUL, $t%d, 4, $t%d )\n", t1, tempnum);
         insereQuad(&CodInter, "MUL", treg(t1), "4", treg(tempnum));
-        tempnum = (tempnum + 1)%32;
+        //tempnum = (tempnum + 1)%32;
+        tempnum = usa_registrador();
+
         //printf("(LOAD, $t%d, %s, $t%d )\n", tempnum, arv->atrib.nome, tempnum-1);
         insereQuad(&CodInter, "LOAD", treg(tempnum), arv->atrib.nome, treg(tempnum-1));
+
+        libera_registrador(tempnum-1);//[PERIGOSO]
+
       }else{
-        tempnum = (tempnum + 1)%32;
+        //tempnum = (tempnum + 1)%32;
+        tempnum = usa_registrador();
+
         //printf("(LOAD, $t%d, %s,  )\n", tempnum, arv->atrib.nome);
         insereQuad(&CodInter, "LOAD", treg(tempnum), arv->atrib.nome, " ");
       }
@@ -217,7 +247,8 @@ static void genExp( NoArvore * arv)
          int t1 = tempnum;
          cGen(p2);
          int t2 = tempnum;
-         tempnum  = (tempnum + 1)%32;
+         //tempnum  = (tempnum + 1)%32;
+         tempnum = usa_registrador();
          switch (arv->atrib.op) {
             case MAIS :
                //printf("(ADD, $t%d, $t%d, $t%d)\n", t1, t2, tempnum);
@@ -265,8 +296,8 @@ static void genExp( NoArvore * arv)
                Erro = 1;
                break;
          } 
-
-
+         libera_registrador(t1);
+         libera_registrador(t2);
          break; 
 
     default:
@@ -275,8 +306,11 @@ static void genExp( NoArvore * arv)
 } 
 
 static void cGen( NoArvore * arv){
-    if(tempnum == 32)
-        tempnum = 0;
+    if(tempnum == 32){
+        //tempnum = 0;
+        libera_todos_os_registradores();
+        Erro = 1;
+    }
     if (arv != NULL){
         switch (arv->tipo_de_no) {
             case TStmt:

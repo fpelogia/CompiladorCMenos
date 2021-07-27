@@ -212,6 +212,18 @@ void destroiListaInstrAsm(ListaInstrAsm *lia);
 
 extern ListaInstrAsm CodAsm; // variável global com a lista de instrucoes assembly
 
+/*
+typedef struct{
+    int n_regs;
+    int reg[N_GPRS + 1];//tamanho máximo inclui o $ra
+}ListaReg;
+*/
+//extern ListaReg reg_escopo[MAX_FUNC_DECL];// registradores utilizados em cada funcao
+//void inicializa_reg_escopo();
+void reporta_reg_temp(char* tr);
+//void reporta_liberacao_tempreg(int n, char* escopo);
+
+
 extern char* lista_escopos[MAX_FUNC_DECL];
 extern int tam_lista_escopos;
 extern int numlocals[MAX_FUNC_DECL];//número de variáveis de certo escopo

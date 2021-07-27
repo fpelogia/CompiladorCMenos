@@ -1,5 +1,8 @@
 #include "definitions.h"
 
+#define RED() printf("\033[1;31m");
+#define BLACK() printf("\033[0m");
+
 static char* escopo = "global";
 static int argcount = 0;
 static int numglobals = 0;
@@ -7,6 +10,10 @@ static int numglobals = 0;
 area_ativacao *listaChamadas;// Lista com as áreas de ativação
 ListaInstrAsm CodAsm;
 int gpr[N_GPRS]; // vetor com disponibilidade dos Registradores
+//ListaReg reg_escopo[MAX_FUNC_DECL];
+char* reg_temp_usado[N_GPRS + 1];
+int n_reg_temp_usado;//começa como zero
+
 
 
 void imprimeTokens(char* nomearq){
@@ -398,7 +405,21 @@ void insereQuad(ListaQuad *lq, char *op, char *c1, char *c2, char *c3){
 void imprimeListaQuad(ListaQuad *lq){
     NoQuad* lq_p = lq->prim;
     while(lq_p->prox != NULL){
-        printf("(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
+        if(strcmp(lq_p->quad->op, "CALL")==0){
+            char c1[strlen(lq_p->quad->c1)]; 
+            int i;
+            for (i = 0; i < strlen(lq_p->quad->c1); i++){
+                if(lq_p->quad->c1[i] != '|'){
+                    c1[i] = lq_p->quad->c1[i];
+                }else{
+                    c1[i] = '\0';
+                    break;
+                }
+            } 
+            printf("(%s,%s,%s,%s)\n",lq_p->quad->op, c1, lq_p->quad->c2, lq_p->quad->c3);
+        }else{
+            printf("(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
+        }
         lq_p = lq_p->prox;
     }
     printf("(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
@@ -437,15 +458,48 @@ int usa_registrador(){
     return -1;
 }
 
+
+/*
+void inicializa_reg_escopo(){
+    int i = 0;
+    for (i = 0; i< N_GPRS + 1; i++){
+        reg_escopo[i].n_regs = 0;
+    }
+}
+void reporta_tempreg(int n, char* escopo){
+    int i = indiceEscopo(escopo);
+    reg_escopo[i].reg[reg_escopo[i].n_regs] = n; // reporta uso do registrador
+    reg_escopo[i].n_regs++;// incrementa n_regs para escopo
+}
+
+void reporta_liberacao_tempreg(int n, char* escopo){
+    int ie = indiceEscopo(escopo);
+    int i, n_regs = reg_escopo[ie].n_regs, encontrou = 0;
+    for (i = 0; i < n_regs; i++){
+        if(i == n){
+            reg_escopo[ie].reg[reg_escopo[i].n_regs] = n; // reporta uso do registrador
+            encontrou = 1;
+        }
+        if(encontrou && i < n_regs - 1){
+            reg_escopo[ie].reg[i] = reg_escopo[ie].reg[i+1];
+        }
+    }
+    reg_escopo[ie].n_regs--;// decrementa n_regs para escopo
+}
+*/
+
 void libera_registrador(int num){
     gpr[num] = 0; //define como não mais utilizado
+    //reporta_liberacao_tempreg(num, escopo);
 }
 
 void libera_todos_os_registradores(){
     int i = 0;
     // percorre todos os registradores
-    for (i = 0; i < N_GPRS; i++)
+    for (i = 0; i < N_GPRS; i++){
         gpr[i] = 0;// libera registrador
+        //reporta_liberacao_tempreg(i, escopo);
+    }
 }
 
 //==================== Geração de Código Assembly ====================================
@@ -489,14 +543,30 @@ int indiceEscopo(char* escopo){
     }
 }
 
+void reporta_reg_temp(char* tr){
+    int i, ja_salvo = 0;
+    for (i = 0; i < n_reg_temp_usado; i++){
+        if(strcmp(tr, reg_temp_usado[i])==0){
+            ja_salvo = 1;
+            break;
+        }
+    }
+    if(!ja_salvo){// novo registrador
+        reg_temp_usado[n_reg_temp_usado++] = tr; 
+    }else{
+        
+    }
+}
+
 void percorreListaQuad(ListaQuad *lq){
 
     NoQuad* lq_p = lq->prim;
+    printf("jal $zero main         (obs: pensar no endereço relativo \"antecipado\")\n");//trocar depois para o endereço relativo
     while(lq_p->prox != NULL){
-        //printf("(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
         if(eh_operacao(lq_p->quad->op))   gera_asm_R(lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);        
         if(strcmp(lq_p->quad->op, "LOAD") == 0){
             gera_asm_LOAD(lq_p->quad->c1, lq_p->quad->c2);
+            
         }
 
         if(strcmp(lq_p->quad->op, "FUN") == 0){
@@ -561,7 +631,13 @@ void gera_asm_FUN(char *nome){
 void gera_asm_END(char* c1){
     // c1: nome da função a ser terminada
     printf("add $fp, $zero, $fp(-1)\n");// fp volta a apontar para o frame da função que chamou
+    if(strcmp(c1, "main")==0){
+        printf("halt\n");
+    }else{
+        printf("jalr $zero $ra\n");//pula de volta para a função que chamou
+    }
     tam_lista_escopos--; // [PERIGOSO]
+    n_reg_temp_usado = 0;
 }
 
 void gera_asm_LAB(char* c1){
@@ -600,6 +676,7 @@ void gera_asm_LOAD(char* c1, char* c2){
         // [TODO]: no futuro trocar fp pelo número do reg.
         printf("lw $%s, $fp(%d)\n", c1, var_id(c2, escopo));
     }
+    reporta_reg_temp(c1);
 }
 
 
@@ -623,12 +700,42 @@ int eh_operacao(char* op){
 }
 
 void gera_asm_CALL(char* c1, char* c2, char* c3){
-    // c1: nome da função
+    // c1: nome da função | nome escopo
     // c2: número de argumentos
     // c3: (opcional) registrador a ser armazenado
-    printf("CHAMADA FUNC %s\n", c1);
+    char nome[strlen(c1)];
+    char escopo[strlen(c1)];
+    int i, achou_divisao = 0, tam_n =  0, tam_e = 0;
+    for (i = 0; i < strlen(c1); i++ ){
+        if(achou_divisao == 1){
+            escopo[tam_e++] = c1[i];
+        }else{
+            if(c1[i] == '|'){
+                achou_divisao = 1;
+            }else{
+                nome[tam_n++] = c1[i];
+            }
+        }
+    }
     //char** la
     //cadastraChamada(c1, escopo, NULL); // o terceiro campo pode receber uma lista global preenchida
+    int count = 1, n_regs, ie;
+    ie = indiceEscopo(escopo);
+    //n_regs = reg_escopo[ie].n_regs;
+
+    //salva registradores
+    for (i = 0; i < n_reg_temp_usado; i++){
+        printf("sw %s $sp(%d)\n", reg_temp_usado[i], i+1);
+        count++;
+    }
+    printf("addi $sp, $sp, %d\n", n_reg_temp_usado);
+    printf("jal $ra, %s\n", nome);// no lugar do nome, enviar endereço relativo (conta com linhas)
+    //restaura registradores
+    for (i = 0; i < n_reg_temp_usado; i++){
+        printf("lw %s $sp(%d)\n", reg_temp_usado[i], i+1);
+        count++;
+    }
+
     if(strcmp(c3," ")==0){ // armazenar resultado no reg c3
     
     }
