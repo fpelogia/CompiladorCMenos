@@ -57,7 +57,7 @@ int main(){
     // [TODO] Escrever funções para destruir Árvore, LQ, LIA
     //  darv
     //destroiListaQuad(&CodInter); 
-    //destroiListaInstrAsm(&CodAsm);
+    //destroiListaInstrAsm(&CodAsm); //nao funciona ainda
 
     fclose(arq_cod_fonte);
     return 0;

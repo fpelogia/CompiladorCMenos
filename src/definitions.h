@@ -6,6 +6,8 @@
 
 #define MAX_TAM_TOKEN 100
 
+#define N_GPRS 28 // número de registradores de propósito geral
+
 #define MEM_SLOTS 64 // 64 slots de 32 bits cada 
 
 #define MAX_FUNC_DECL 50 // máximo de funções a serem declaradas
@@ -172,6 +174,13 @@ void imprimeListaQuad(ListaQuad *lq);
 void destroiListaQuad(ListaQuad *lq);
 
 extern ListaQuad CodInter; // variável global com a lista de quádruplas (cod. intermediário)
+
+//=================== Gerenciamento de Registradores =====================
+extern int gpr[N_GPRS]; // vetor com disponibilidade dos Registradores
+// obs: vetores globais já têm seus elementos inicializados com zero
+int usa_registrador();
+void libera_registrador(int num);
+void libera_todos_os_registradores();
 
 // =================== Geração de Código Assembly =============================
 

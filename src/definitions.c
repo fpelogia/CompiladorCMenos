@@ -6,6 +6,8 @@ static int numglobals = 0;
 // Guarda dados referentes às funções chamadas
 area_ativacao *listaChamadas;// Lista com as áreas de ativação
 ListaInstrAsm CodAsm;
+int gpr[N_GPRS]; // vetor com disponibilidade dos Registradores
+
 
 void imprimeTokens(char* nomearq){
     FILE* fc = fopen("sample.c","r");
@@ -403,8 +405,6 @@ void imprimeListaQuad(ListaQuad *lq){
 }
 
 void destroiListaQuad(ListaQuad *lq){
-    // Essa função não está funcionando
-    // tentar corrigir depois
     NoQuad* lq_p;
     do{
         if(lq->prim == NULL){
@@ -416,9 +416,36 @@ void destroiListaQuad(ListaQuad *lq){
         }
         //free(lq_p->quad);
         free(lq_p);
+        lq_p = NULL;
     }while(lq_p != NULL);
     if(lq->prim != NULL)
         free(lq->prim);
+}
+//==================== Gerenciamento de registradores ================================
+
+int usa_registrador(){
+    int i = 0;
+    //busca pelo primeiro registrador que esteja livre
+    for (i = 0; i < N_GPRS; i++)
+        if(gpr[i] == 0){// se encontrou
+            gpr[i] = 1;// sinaliza utilização
+            return i;// retorna índice do registrador
+        }
+    // se não encontrou, reporta erro
+    Erro = 1;
+    printf("Erro de síntese: não há registradores disponíveis\n");
+    return -1;
+}
+
+void libera_registrador(int num){
+    gpr[num] = 0; //define como não mais utilizado
+}
+
+void libera_todos_os_registradores(){
+    int i = 0;
+    // percorre todos os registradores
+    for (i = 0; i < N_GPRS; i++)
+        gpr[i] = 0;// libera registrador
 }
 
 //==================== Geração de Código Assembly ====================================
