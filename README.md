@@ -1,5 +1,6 @@
 # CompiladorCMenos
-Compilador para a linguagem C menos. A geração de código assembly e executável é específica para a arquitetura [RVSP](https://github.com/fpelogia/RVSP).
+Compilador para a linguagem C menos. 
+A geração de código assembly e executável é específica para a arquitetura [RVSP](https://github.com/fpelogia/RVSP).
 
 
 ## Instruções
