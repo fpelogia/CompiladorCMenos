@@ -1,5 +1,5 @@
 # CompiladorCMenos
-Compilador para a linguagem C menos.
+Compilador para a linguagem C menos. A geração de código assembly e executável é específica para a arquitetura [RVSP](https://github.com/fpelogia/RVSP).
 
 
 ## Instruções
@@ -7,7 +7,7 @@ Compilador para a linguagem C menos.
 - Rode o script run.sh (ou os comandos dentro dele)
 
 ## Observações
-- O compilador apenas gera código intermediário de 3 endereços, representado por quadruplas. Sendo assim, as demais etapas da fase de síntese não estão implementadas.
+- O compilador apenas gera código intermediário de 3 endereços, representado por quadruplas. Sendo assim, as demais etapas da fase de síntese ainda estão implementadas.
 - O código da maior parte dos módulos do computador foi amplamente inspirado nas explicações e no código diponibilizado pelo livro [1].
 
 ## Referências
