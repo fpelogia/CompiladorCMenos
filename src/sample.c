@@ -1,11 +1,12 @@
-void func(int b){
-    b = 1;
+int a;
+int b[3];
+int func(int x){
+    int y;
+    y = 3;
+    return x + y;
 }
-int main(void){
-    int x;
-    int var;
-    x = 3;
-    var = 1;
-    func(2);
-    return 0;
+void main(void){
+    int num;
+    num = 2;
+    num = func(num);
 }

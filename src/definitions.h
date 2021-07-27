@@ -10,7 +10,8 @@
 
 #define MAX_FUNC_DECL 50 // máximo de funções a serem declaradas
 
-#define GLOBAL_PART_SIZE 30 // numero de slots da memória para as coisas globais
+// desativado por enquanto. não sei se é necessário fixar esse valor
+//#define GLOBAL_PART_SIZE 30 // numero de slots da memória para as coisas globais
 
 #ifndef YYPARSER // Não importa o arquivo quando chamado pelo parse.y
 #include "parse.tab.h" //Gerado pela flag "-d" do bison
@@ -89,7 +90,7 @@ char * retStrTipo(Tipo t);
 /* Procedimento insere_tab_sim insere o numero das linhas 
    e os locais de memoria na tabela de simbolos
 */
-void insere_tab_sim( char * nome, int numlinha, int loc, char * escopo, Tipo tipo, int eh_funcao);
+void insere_tab_sim( char * nome, int numlinha, int tamanho, char * escopo, Tipo tipo, int eh_funcao);
 
 // Função que retorna 1 se houver uma funçao de mesmo nome declarada
 // e retorna 0 caso contrário.
@@ -168,10 +169,39 @@ typedef struct{
 void inicializaListaQuad(ListaQuad *lq);
 void insereQuad(ListaQuad* lq, char* op, char* c1, char* c2, char*c3);
 void imprimeListaQuad(ListaQuad *lq);
+void destroiListaQuad(ListaQuad *lq);
 
 extern ListaQuad CodInter; // variável global com a lista de quádruplas (cod. intermediário)
 
 // =================== Geração de Código Assembly =============================
+
+// Tipos de Instrução da arquitetura RVSP (https://github.com/fpelogia/RVSP)
+typedef enum{
+    R, I, B, S
+}TipoAsm;
+
+typedef struct {
+    TipoAsm tipo;
+    char* nome;
+    int rd;
+    int rs1;
+    int rs2;
+    int imediato;
+}InstrAsm;
+
+typedef struct SNoInstrAsm{
+    InstrAsm *instr;
+    struct SNoInstrAsm *prox;
+}NoInstrAsm;
+
+typedef struct{
+    NoInstrAsm* prim;
+}ListaInstrAsm;
+
+void inicializaListaInstrAsm(ListaInstrAsm *lia);
+void destroiListaInstrAsm(ListaInstrAsm *lia);
+
+extern ListaInstrAsm CodAsm; // variável global com a lista de instrucoes assembly
 
 extern char* lista_escopos[MAX_FUNC_DECL];
 extern int tam_lista_escopos;
@@ -191,6 +221,8 @@ void gera_asm_STORE(char* c1, char* c2);
 void gera_asm_RET(char* c1);
 void gera_asm_LAB(char* c1);
 void gera_asm_END(char* c1);
+void gera_asm_CALL(char* c1, char* c2, char* c3);
+void gera_asm_ALLOC(char* c1, char* c2, char* c3);
 
 // jeito que acho que deve ser:
 //typedef uint32_t endereco_m;
@@ -204,7 +236,7 @@ typedef struct variavel_s {
     struct variavel_s* prox;
 }variavel;
 */
-/*
+
 typedef char* variavel; // por enquanto, para testar, seja o nome da variavel
 
 typedef struct area_ativacao_s {
@@ -216,22 +248,10 @@ typedef struct area_ativacao_s {
     struct area_ativacao_s *prox;// próxima área de ativação
 } area_ativacao;
 
-// Guarda dados referentes às funções chamadas
-area_ativacao *listaChamadas;// Lista com as áreas de ativação
+
+void cadastraChamada(endereco_m func, endereco_m escopo, variavel* lista_args);
 
 
-void cadastraChamada(endereco_m func, endereco_m escopo, variavel* lista_args){
-    area_ativacao* lc_p = listaChamadas;
-    while(lc_p->prox != NULL){
-        lc_p = lc_p->prox;
-    }
-    area_ativacao* nova_aa = malloc(sizeof(area_ativacao));
-    nova_aa->func_fp = func;
-    nova_aa->quem_chamou = escopo;
-
-}
-
-*/
 /*
  * Pensar nas funções de interface
  * */

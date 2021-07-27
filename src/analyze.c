@@ -1,7 +1,6 @@
 #include "definitions.h"
 
 //contador para os endereços na lista de blocos
-static int location = 0;
 static bool possuiMain = false;
 static char* escopo = "global";
 
@@ -34,7 +33,7 @@ static void insereNo( NoArvore * t){
                         printf("Erro Semântico na linha %d\n\tFunção %s é reservada!\n",t->numlinha,t->atrib.nome);
                     }else{
                         if (func_ja_declarada(t->atrib.nome)==0){
-                            insere_tab_sim(t->atrib.nome,t->numlinha,location++,"global",t->tipo_c,1);
+                            insere_tab_sim(t->atrib.nome,t->numlinha,0,"global",t->tipo_c,1);
                             escopo = t->atrib.nome;// escopo da função
                             registraEscopo(escopo);
                         }else{
@@ -52,13 +51,23 @@ static void insereNo( NoArvore * t){
                     if (var_ja_declarada(t->atrib.nome) == 0)
                         //variável ainda não declarada
                         //pode declarar
-                        insere_tab_sim(t->atrib.nome,t->numlinha,location++,escopo,t->tipo_c,0);
+                        if(t->filho[0] != NULL){//vetor
+                            int tamanho = t->filho[0]->atrib.val;
+                            insere_tab_sim(t->atrib.nome,t->numlinha,tamanho,escopo,t->tipo_c,0);
+                        }else{
+                            insere_tab_sim(t->atrib.nome,t->numlinha,1,escopo,t->tipo_c,0);
+                        }
                     else{
                         //variável já declarada
                         if(strcmp(escopo,"global")!=0){
                             if(var_ja_declarada_no_escopo(t->atrib.nome, escopo) == 0){
                                 //pode declarar
-                                insere_tab_sim(t->atrib.nome,t->numlinha,location++,escopo,t->tipo_c,0);
+                                if(t->filho[0] != NULL){//vetor
+                                    int tamanho = t->filho[0]->atrib.val;
+                                    insere_tab_sim(t->atrib.nome,t->numlinha,tamanho,escopo,t->tipo_c,0);
+                                }else{
+                                    insere_tab_sim(t->atrib.nome,t->numlinha,1,escopo,t->tipo_c,0);
+                                }
                             }else{
                                 Erro = true;
                                 printf("Erro Semântico na linha %d\n\tVariável %s já declarada!\n",t->numlinha,t->atrib.nome);

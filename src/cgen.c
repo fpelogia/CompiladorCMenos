@@ -1,6 +1,6 @@
 #include "definitions.h"
 
-static int tempnum = 1;
+static int tempnum = 0;
 static int labelnum = 0;
 static int param = 0;
 static char* param_list[500]; // Máximo de 500 parâmetros

@@ -35,10 +35,10 @@ typedef struct listaDeBlocos
    { char * nome;
      char * escopo;
      int eh_funcao; // 0: variável // 1: função
+     int tamanho; // utilizado na geração de código assembly
      int id; // utilizado na geração de código assembly
      Tipo tipo; 
      ListaDeLinhas linhas;
-     int numbloco ; // utilizado ao criar
      struct listaDeBlocos* prox;
    } * ListaDeBlocos;
 
@@ -49,7 +49,7 @@ static ListaDeBlocos Tabela_hash[SIZE];
 /* Procedimento insere_tab_sim insere o numero das linhas 
    e os locais de memoria na tabela de simbolos
 */
-void insere_tab_sim( char * nome, int numlinha, int loc, char * escopo, Tipo tipo, int eh_funcao)
+void insere_tab_sim( char * nome, int numlinha, int tamanho, char * escopo, Tipo tipo, int eh_funcao)
 { int h = hash(nome);
   ListaDeBlocos l =  Tabela_hash[h];
   while ((l != NULL) && ((strcmp(nome,l->nome) != 0) || strcmp(l->escopo,escopo)!=0 ))
@@ -60,7 +60,13 @@ void insere_tab_sim( char * nome, int numlinha, int loc, char * escopo, Tipo tip
     l->nome = nome;
     l->linhas = (ListaDeLinhas) malloc(sizeof(struct listaDeLinhas));
     l->linhas->numlinha = numlinha;
-    l->numbloco = loc;
+    l->tamanho = tamanho;
+    //====================
+    if(eh_funcao == 0){
+        l->id = ++numlocals[indiceEscopo(escopo)]; // utilizado no gerador de cod. asm
+    }
+    //====================
+
     if(strcmp(escopo,"global")==0){
         char* eg = malloc(7*sizeof(char));
         if(eg == NULL){printf("Erro de alocação de memória!\n");return;}
@@ -68,7 +74,6 @@ void insere_tab_sim( char * nome, int numlinha, int loc, char * escopo, Tipo tip
         l->escopo = eg;
     }else{
         l->escopo = escopo;
-        l->id = ++numlocals[indiceEscopo(escopo)]; // utilizado no gerador de cod. asm
     }
     l->tipo = tipo;
     l->eh_funcao = eh_funcao;
@@ -206,8 +211,8 @@ int var_id(char * nome, char* escopo){
 
 void imprimeTabSim(FILE * listing)
 { int i;
-  fprintf(listing," | Nome:      Id:   Tipo:   Escopo:   Referenciado nas Linhas:\n");
-  fprintf(listing," | -----      ---  ------  -------  ------------------------\n");
+  fprintf(listing," | Nome:      Id:   Tipo:   Escopo:    Tamanho:   Referenciado nas Linhas:\n");
+  fprintf(listing," | -----      ---  ------  -------     -------     ------------------------\n");
   for (i=0;i<SIZE;++i)
   { if (Tabela_hash[i] != NULL)
     { ListaDeBlocos l = Tabela_hash[i];
@@ -216,7 +221,8 @@ void imprimeTabSim(FILE * listing)
         fprintf(listing," |  %-6s ",l->nome);
         fprintf(listing," |  %-1d ",l->id);
         fprintf(listing," |  %-5s ",retStrTipo(l->tipo));
-        fprintf(listing,"|  %-11s|",l->escopo);
+        fprintf(listing,"|  %-9s",l->escopo);
+        fprintf(listing,"|  %-5d|",l->tamanho);
         while (t != NULL)
         { fprintf(listing,"%4d ",t->numlinha);
           t = t->prox;

@@ -1,6 +1,11 @@
 #include "definitions.h"
 
 static char* escopo = "global";
+static int argcount = 0;
+static int numglobals = 0;
+// Guarda dados referentes às funções chamadas
+area_ativacao *listaChamadas;// Lista com as áreas de ativação
+ListaInstrAsm CodAsm;
 
 void imprimeTokens(char* nomearq){
     FILE* fc = fopen("sample.c","r");
@@ -397,6 +402,50 @@ void imprimeListaQuad(ListaQuad *lq){
     printf("(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
 }
 
+void destroiListaQuad(ListaQuad *lq){
+    // Essa função não está funcionando
+    // tentar corrigir depois
+    NoQuad* lq_p;
+    do{
+        if(lq->prim == NULL){
+            break;
+        }
+        lq_p = lq->prim;
+        while(lq_p->prox != NULL){
+            lq_p = lq_p->prox;
+        }
+        //free(lq_p->quad);
+        free(lq_p);
+    }while(lq_p != NULL);
+    if(lq->prim != NULL)
+        free(lq->prim);
+}
+
+//==================== Geração de Código Assembly ====================================
+
+void inicializaListaInstrAsm(ListaInstrAsm *lia){
+    lia->prim = NULL;
+}
+
+
+void destroiListaInstrAsm(ListaInstrAsm *lia){
+    // Essa função não está funcionando
+    // tentar corrigir depois
+    NoInstrAsm* lia_p;
+    do{
+        if(lia->prim == NULL){
+            break;
+        }
+        lia_p = lia->prim;
+        while(lia_p->prox != NULL){
+            lia_p = lia_p->prox;
+        }
+        free(lia_p);
+    }while(lia_p != NULL);
+    if(lia->prim != NULL)
+        free(lia->prim);
+}
+
 void registraEscopo(char* escopo){
     lista_escopos[tam_lista_escopos] = escopo; // salva nome da função;
     if(tam_lista_escopos < MAX_FUNC_DECL){
@@ -414,7 +463,7 @@ int indiceEscopo(char* escopo){
 }
 
 void percorreListaQuad(ListaQuad *lq){
-    printf("\n=============== Código Assembly ==================\n\n");
+
     NoQuad* lq_p = lq->prim;
     while(lq_p->prox != NULL){
         //printf("(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
@@ -426,6 +475,10 @@ void percorreListaQuad(ListaQuad *lq){
         if(strcmp(lq_p->quad->op, "FUN") == 0){
             escopo = lq_p->quad->c2;
             gera_asm_FUN(lq_p->quad->c2);
+        }
+
+        if(strcmp(lq_p->quad->op, "ARG") == 0){
+            argcount++; // sinaliza para os próximos LOADs
         }
 
         if(strcmp(lq_p->quad->op, "ASSIGN") == 0){
@@ -448,6 +501,13 @@ void percorreListaQuad(ListaQuad *lq){
             gera_asm_END(lq_p->quad->c1);
         }
 
+        if(strcmp(lq_p->quad->op, "CALL") == 0){
+            gera_asm_CALL(lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
+        }
+
+        if(strcmp(lq_p->quad->op, "ALLOC") == 0){
+            gera_asm_ALLOC(lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
+        }
         lq_p = lq_p->prox;
     }
     //printf("(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
@@ -456,16 +516,24 @@ void percorreListaQuad(ListaQuad *lq){
 void gera_asm_FUN(char *nome){
     int total_ativacoes = 0;
     int i;
-    for (i = 1; i < tam_lista_escopos; i++){
-        total_ativacoes += 1 + numlocals[i];// [TODO]: vai ser alterado ao lidar com args
+    /*for (i = 1; i < tam_lista_escopos; i++){
+        total_ativacoes += 1 + numlocals[i];//
+    }*/
+    printf("\n%s:\n", nome);
+    if(strcmp(nome, "main") == 0){
+        printf("addi $sp, $zero, %d\n", numglobals);
+    }else{
+        printf("addi $sp, $sp, %d\n", 2);
     }
-    printf("%s:\n", nome);
-    printf("addi $fp, $t0, %d\n", GLOBAL_PART_SIZE + total_ativacoes);
+    printf("addi $fp, $zero, $sp\n");
+    /* fp(-1) conterá o endereço da função que chamou (não se aplica p/ main)
+     * fp(0) conterá o valor para retorno
+     */
 }
 
 void gera_asm_END(char* c1){
     // c1: nome da função a ser terminada
-    printf("addi $fp, $t0, %d\n", GLOBAL_PART_SIZE);
+    printf("add $fp, $zero, $fp(-1)\n");// fp volta a apontar para o frame da função que chamou
     tam_lista_escopos--; // [PERIGOSO]
 }
 
@@ -487,13 +555,19 @@ void gera_asm_RET(char* c1){
 }
 
 void gera_asm_ASSIGN(char* c1, char* c2){
-    printf("add $%s, $%s, $t0\n", c1, c2);
+    printf("add $%s, $%s, $zero\n", c1, c2);
 }
 
 void gera_asm_LOAD(char* c1, char* c2){
+    // campo 1 é um registrador
     if((c2[0] >= 48) && (c2[0] <= 57)){
         // campo 2 é um número
-        printf("addi $%s, $t0, %s\n", c1, c2);
+        printf("addi $%s, $zero, %s\n", c1, c2);
+    }else if (argcount > 0){ // Carregamento de um argumento
+        // campo 2 é o nome de uma variável
+        // [TODO]: no futuro trocar ap pelo número do reg.
+        printf("lw $%s, $ap(%d)\n", c1, var_id(c2, escopo));
+        argcount--;
     }else{
         // campo 2 é o nome de uma variável
         // [TODO]: no futuro trocar fp pelo número do reg.
@@ -519,4 +593,39 @@ void gera_asm_R(char* op, char* c1, char* c2, char* c3){
 
 int eh_operacao(char* op){
     return strcmp(op, "ADD") == 0 || strcmp(op, "SUB") == 0  || strcmp(op, "MUL") == 0 || strcmp(op, "DIV") == 0 ;
+}
+
+void gera_asm_CALL(char* c1, char* c2, char* c3){
+    // c1: nome da função
+    // c2: número de argumentos
+    // c3: (opcional) registrador a ser armazenado
+    printf("CHAMADA FUNC %s\n", c1);
+    //char** la
+    //cadastraChamada(c1, escopo, NULL); // o terceiro campo pode receber uma lista global preenchida
+    if(strcmp(c3," ")==0){ // armazenar resultado no reg c3
+    
+    }
+}
+
+void gera_asm_ALLOC(char* c1, char* c2, char* c3){
+
+    if(strcmp(c2, "global") == 0){
+        numglobals++;
+    }
+    if(strcmp(c3, " ") == 0) {
+        printf("addi $sp, $sp, 1\n");
+    }else{// vetor
+        printf("addi $sp, $sp, %s\n", c3);
+    }
+}
+
+//===================================================
+void cadastraChamada(endereco_m func, endereco_m escopo, variavel* lista_args){
+    area_ativacao* lc_p = listaChamadas;
+    while(lc_p->prox != NULL){
+        lc_p = lc_p->prox;
+    }
+    area_ativacao* nova_aa = malloc(sizeof(area_ativacao));
+    nova_aa->func_fp = func;
+    nova_aa->quem_chamou = escopo;
 }

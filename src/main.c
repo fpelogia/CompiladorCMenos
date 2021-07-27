@@ -31,20 +31,34 @@ int main(){
     if(!Erro)
         imprimeArvore(arvoreSintatica);
     printf("\n\n");
+    
+    // utilizado na geração de código Intermediário
+    registraEscopo("global");
 
     montaTabSim(arvoreSintatica);
     if(!Erro)
         checaTipos(arvoreSintatica);
 
+    
     printf("\n\n============  Código Intermediário ============\n\n");
+    inicializaListaQuad(&CodInter);
     if(!Erro)
         geraCod(arvoreSintatica);
     
     imprimeListaQuad(&CodInter); // Imprime Código Intermediário
 
+    printf("\n=============== Código Assembly ==================\n\n");
+    inicializaListaInstrAsm(&CodAsm);
     percorreListaQuad(&CodInter); // Imprime Código Assembly
 
     printf("\n");
+
+
+    // [TODO] Escrever funções para destruir Árvore, LQ, LIA
+    //  darv
+    //destroiListaQuad(&CodInter); 
+    //destroiListaInstrAsm(&CodAsm);
+
     fclose(arq_cod_fonte);
     return 0;
 }
