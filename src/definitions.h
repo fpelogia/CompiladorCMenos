@@ -234,11 +234,11 @@ int indiceEscopo(char* escopo);
 void percorreListaQuad(ListaQuad *lq);
 void gera_asm_R(char* op, char* c1, char* c2, char* c3);
 int eh_operacao(char* op);
-int var_id(char * nome, char* escopo); // corpo está em symtab.c
-void gera_asm_LOAD(char* c1, char* c2);
+int var_endereco(char * nome, char* escopo, int* eh_global); // corpo está em symtab.c
+void gera_asm_LOAD(char* c1, char* c2, char* c3);
 void gera_asm_FUN(char* nome);
 void gera_asm_ASSIGN(char* c1, char* c2);
-void gera_asm_STORE(char* c1, char* c2);
+void gera_asm_STORE(char* c1, char* c2, char* c3);
 void gera_asm_RET(char* c1);
 void gera_asm_LAB(char* c1);
 void gera_asm_END(char* c1);

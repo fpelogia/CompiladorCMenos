@@ -46,7 +46,6 @@ static void genStmt( NoArvore * arv)
 { NoArvore * p1, * p2, * p3;
   int savedLoc1,savedLoc2,currentLoc;
   int loc, t1,t2,t3,l1,l2,l3;
-  char* gambiarra;
   switch (arv->tipo.stmt) {
 
       case S_If:
@@ -128,12 +127,7 @@ static void genStmt( NoArvore * arv)
          
          tempnum = usa_registrador();
 
-         gambiarra = malloc((strlen(arv->atrib.nome) + strlen(escopo))*sizeof(char));
-         strcpy(gambiarra, arv->atrib.nome);
-         strcat(gambiarra, "|");
-         strcat(gambiarra, escopo);
-         insereQuad(&CodInter, "CALL", gambiarra, numtostr(npar), treg(tempnum));
-         free(gambiarra);
+         insereQuad(&CodInter, "CALL", arv->atrib.nome, numtostr(npar), treg(tempnum));
          break;
       default:
             break;

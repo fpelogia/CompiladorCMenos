@@ -187,20 +187,42 @@ void retorna_tipo_var (char* nome, char* escopo, Tipo* tipo_c){
     }
 }
 
-// Função que retorna o id de uma certa variável.
-// É utilizada na geração do código assembly
-int var_id(char * nome, char* escopo){
+// Função que retorna o endereco relativo de uma variável (primeira posição, no caso de vetores)
+// caso seja global, a flag eh_global é ativada
+int var_endereco(char * nome, char* escopo, int* eh_global){
+    int endereco = 0;
     int h = hash(nome);
     ListaDeBlocos l =  Tabela_hash[h];
     while (l != NULL){
         if ((l->eh_funcao == 0)&&(strcmp(nome,l->nome) == 0)&&(strcmp(escopo, l->escopo) == 0)){
             break;
+        }else{
+            endereco += l->tamanho;
         }
         l = l->prox;
     }
     if (l != NULL) {//encontrou a variável
-        return l->id;// retorna o id da variável
+        *eh_global = 0;
+        return endereco;// retorna o endereço da variável
+    }else{
+        // Verifica se possui no escopo global (nada otimizado, eu sei ...)
+        endereco = 0;
+        l =  Tabela_hash[h];
+        while (l != NULL){
+            if ((l->eh_funcao == 0)&&(strcmp(nome,l->nome) == 0)&&(strcmp("global", l->escopo) == 0)){
+                break;
+            }else{
+                endereco += l->tamanho;
+            }
+            l = l->prox;
+        }
+        if( l != NULL){
+            *eh_global = 1;
+            return endereco;// retorna o endrereço da variável
+        }
     }
+
+    Erro = 1;
     return -1; // espero que nunca chegue aqui, mas sei lá...
 }
 

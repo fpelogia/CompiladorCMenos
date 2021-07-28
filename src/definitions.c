@@ -559,17 +559,20 @@ void reporta_reg_temp(char* tr){
 }
 
 void percorreListaQuad(ListaQuad *lq){
-
+    int primeira_fun = 1;
     NoQuad* lq_p = lq->prim;
-    printf("jal $zero main         (obs: pensar no endereço relativo \"antecipado\")\n");//trocar depois para o endereço relativo
     while(lq_p->prox != NULL){
         if(eh_operacao(lq_p->quad->op))   gera_asm_R(lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);        
         if(strcmp(lq_p->quad->op, "LOAD") == 0){
-            gera_asm_LOAD(lq_p->quad->c1, lq_p->quad->c2);
+            gera_asm_LOAD(lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
             
         }
 
         if(strcmp(lq_p->quad->op, "FUN") == 0){
+            if(primeira_fun){
+                printf("jal $zero main         (obs: pensar no endereço relativo \"antecipado\")\n");//trocar depois para o endereço relativo
+                primeira_fun = 0;
+            }
             escopo = lq_p->quad->c2;
             gera_asm_FUN(lq_p->quad->c2);
         }
@@ -583,7 +586,7 @@ void percorreListaQuad(ListaQuad *lq){
         }
 
         if(strcmp(lq_p->quad->op, "STORE") == 0){
-            gera_asm_STORE(lq_p->quad->c1, lq_p->quad->c2);
+            gera_asm_STORE(lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
         }
 
         if(strcmp(lq_p->quad->op, "RET") == 0){
@@ -611,15 +614,12 @@ void percorreListaQuad(ListaQuad *lq){
 }
 
 void gera_asm_FUN(char *nome){
-    int total_ativacoes = 0;
     int i;
     /*for (i = 1; i < tam_lista_escopos; i++){
         total_ativacoes += 1 + numlocals[i];//
     }*/
     printf("\n%s:\n", nome);
-    if(strcmp(nome, "main") == 0){
-        printf("addi $sp, $zero, %d\n", numglobals);
-    }else{
+    if(strcmp(nome, "main") != 0){
         printf("addi $sp, $sp, %d\n", 2);
     }
     printf("addi $fp, $zero, $sp\n");
@@ -645,10 +645,20 @@ void gera_asm_LAB(char* c1){
     printf("%s:\n", c1);
 }
 
-void gera_asm_STORE(char* c1, char* c2){
+void gera_asm_STORE(char* c1, char* c2, char* c3){
     // c1: nome da variável
     // c2: registrador com valor
-    printf("sw $%s, $fp(%d)\n", c2, var_id(c1, escopo));
+    // c3: (opcional) indice
+    int desl, eh_global;
+    desl = var_endereco(c1, escopo, &eh_global);
+    if(strcmp(c3, " ")!=0){//vetor
+        desl += atoi(c3);
+    }
+    if(eh_global){
+        printf("sw $%s, $zero(%d)\n", c2, desl);
+    }else{
+        printf("sw $%s, $fp(%d)\n", c2, desl);
+    }
 }
 
 void gera_asm_RET(char* c1){
@@ -661,20 +671,34 @@ void gera_asm_ASSIGN(char* c1, char* c2){
     printf("add $%s, $%s, $zero\n", c1, c2);
 }
 
-void gera_asm_LOAD(char* c1, char* c2){
-    // campo 1 é um registrador
+void gera_asm_LOAD(char* c1, char* c2, char* c3){
+    // c1: registrador
+    // c3: (opcional) indice
     if((c2[0] >= 48) && (c2[0] <= 57)){
-        // campo 2 é um número
-        printf("addi $%s, $zero, %s\n", c1, c2);
+        // c2 é um número
+        printf("addi $%s, $zero, %d\n", c1, atoi(c2));
     }else if (argcount > 0){ // Carregamento de um argumento
-        // campo 2 é o nome de uma variável
-        // [TODO]: no futuro trocar ap pelo número do reg.
-        printf("lw $%s, $ap(%d)\n", c1, var_id(c2, escopo));
+        // c2 é o nome de uma variável
+        int desl, eh_global;
+        desl = var_endereco(c2, escopo, &eh_global);
+        if(strcmp(c3, " ")!=0){//vetor
+            desl += atoi(c3);
+        }
+        printf("lw $%s, $ap(%d)\n", c1, desl);// nesse caso, nunca será global
         argcount--;
     }else{
-        // campo 2 é o nome de uma variável
-        // [TODO]: no futuro trocar fp pelo número do reg.
-        printf("lw $%s, $fp(%d)\n", c1, var_id(c2, escopo));
+        // c2 é o nome de uma variável
+        int desl, eh_global;
+        desl = var_endereco(c2, escopo, &eh_global);
+        if(strcmp(c3, " ")!=0){//vetor
+            desl += atoi(c3);
+        }
+        printf("BUSQUEI %s e recebi desl %d\n", c2, desl);
+        if(eh_global){
+            printf("lw $%s, $zero(%d)\n", c1, desl);
+        }else{
+            printf("lw $%s, $fp(%d)\n", c1, desl);
+        }
     }
     reporta_reg_temp(c1);
 }
@@ -703,23 +727,9 @@ void gera_asm_CALL(char* c1, char* c2, char* c3){
     // c1: nome da função | nome escopo
     // c2: número de argumentos
     // c3: (opcional) registrador a ser armazenado
-    char nome[strlen(c1)];
-    char escopo[strlen(c1)];
-    int i, achou_divisao = 0, tam_n =  0, tam_e = 0;
-    for (i = 0; i < strlen(c1); i++ ){
-        if(achou_divisao == 1){
-            escopo[tam_e++] = c1[i];
-        }else{
-            if(c1[i] == '|'){
-                achou_divisao = 1;
-            }else{
-                nome[tam_n++] = c1[i];
-            }
-        }
-    }
     //char** la
     //cadastraChamada(c1, escopo, NULL); // o terceiro campo pode receber uma lista global preenchida
-    int count = 1, n_regs, ie;
+    int count = 1, n_regs, ie, i;
     ie = indiceEscopo(escopo);
     //n_regs = reg_escopo[ie].n_regs;
 
@@ -729,12 +739,13 @@ void gera_asm_CALL(char* c1, char* c2, char* c3){
         count++;
     }
     printf("addi $sp, $sp, %d\n", n_reg_temp_usado);
-    printf("jal $ra, %s\n", nome);// no lugar do nome, enviar endereço relativo (conta com linhas)
+    printf("jal $ra, %s\n", c1);// no lugar do nome, enviar endereço relativo (conta com linhas)
     //restaura registradores
     for (i = 0; i < n_reg_temp_usado; i++){
         printf("lw %s $sp(%d)\n", reg_temp_usado[i], i+1);
         count++;
     }
+    printf("addi $sp, $sp, %d\n", -1*n_reg_temp_usado);
 
     if(strcmp(c3," ")==0){ // armazenar resultado no reg c3
     
@@ -747,9 +758,17 @@ void gera_asm_ALLOC(char* c1, char* c2, char* c3){
         numglobals++;
     }
     if(strcmp(c3, " ") == 0) {
-        printf("addi $sp, $sp, 1\n");
+        if(numglobals == 1){
+            printf("addi $sp, $zero, 1\n");
+        }else{
+            printf("addi $sp, $sp, 1\n");
+        }
     }else{// vetor
-        printf("addi $sp, $sp, %s\n", c3);
+        if(numglobals == 1){
+            printf("addi $sp, $zero, %s\n", c3);
+        }else{
+            printf("addi $sp, $sp, %s\n", c3);
+        }
     }
 }
 
