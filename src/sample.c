@@ -3,10 +3,11 @@ int b[3];
 int func(int x){
     int y;
     y = b[1];
-    return x + y;
+    return x[0] + y;
 }
 void main(void){
+    int varx;
     int num;
     num = 2;
-    b[0] = func(a);
+    b[1] = func(5);
 }

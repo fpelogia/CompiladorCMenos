@@ -37,6 +37,7 @@ typedef struct listaDeBlocos
      int eh_funcao; // 0: variável // 1: função
      int tamanho; // utilizado na geração de código assembly
      int id; // utilizado na geração de código assembly
+     int id_local; // utilizado na geração de código assembly
      Tipo tipo; 
      ListaDeLinhas linhas;
      struct listaDeBlocos* prox;
@@ -44,6 +45,8 @@ typedef struct listaDeBlocos
 
 //Tabela Hash
 static ListaDeBlocos Tabela_hash[SIZE];
+
+static int numvars = 0;
 
 
 /* Procedimento insere_tab_sim insere o numero das linhas 
@@ -63,7 +66,8 @@ void insere_tab_sim( char * nome, int numlinha, int tamanho, char * escopo, Tipo
     l->tamanho = tamanho;
     //====================
     if(eh_funcao == 0){
-        l->id = ++numlocals[indiceEscopo(escopo)]; // utilizado no gerador de cod. asm
+        l->id_local = ++numlocals[indiceEscopo(escopo)]; // utilizado no gerador de cod. asm
+        l->id = ++numvars; // utilizado no gerador de cod. asm
     }
     //====================
 
@@ -187,38 +191,32 @@ void retorna_tipo_var (char* nome, char* escopo, Tipo* tipo_c){
     }
 }
 
-// Função que retorna o endereco relativo de uma variável (primeira posição, no caso de vetores)
+// Função que retorna o id de uma variável 
 // caso seja global, a flag eh_global é ativada
-int var_endereco(char * nome, char* escopo, int* eh_global){
-    int endereco = 0;
+int var_id(char * nome, char* escopo, int* eh_global){
     int h = hash(nome);
     ListaDeBlocos l =  Tabela_hash[h];
     while (l != NULL){
         if ((l->eh_funcao == 0)&&(strcmp(nome,l->nome) == 0)&&(strcmp(escopo, l->escopo) == 0)){
             break;
-        }else{
-            endereco += l->tamanho;
         }
         l = l->prox;
     }
     if (l != NULL) {//encontrou a variável
         *eh_global = 0;
-        return endereco;// retorna o endereço da variável
+        return l->id_local;// retorna o id da variável
     }else{
         // Verifica se possui no escopo global (nada otimizado, eu sei ...)
-        endereco = 0;
         l =  Tabela_hash[h];
         while (l != NULL){
             if ((l->eh_funcao == 0)&&(strcmp(nome,l->nome) == 0)&&(strcmp("global", l->escopo) == 0)){
                 break;
-            }else{
-                endereco += l->tamanho;
             }
             l = l->prox;
         }
         if( l != NULL){
             *eh_global = 1;
-            return endereco;// retorna o endrereço da variável
+            return l->id_local;// retorna o id da variável
         }
     }
 
@@ -233,8 +231,8 @@ int var_endereco(char * nome, char* escopo, int* eh_global){
 
 void imprimeTabSim(FILE * listing)
 { int i;
-  fprintf(listing," | Nome:      Id:   Tipo:   Escopo:    Tamanho:   Referenciado nas Linhas:\n");
-  fprintf(listing," | -----      ---  ------  -------     -------     ------------------------\n");
+  fprintf(listing," | Nome:      Id:   Id_local:   Tipo:   Escopo:    Tamanho:   Referenciado nas Linhas:\n");
+  fprintf(listing," | -----      ---   --------  ------  -------     -------     ------------------------\n");
   for (i=0;i<SIZE;++i)
   { if (Tabela_hash[i] != NULL)
     { ListaDeBlocos l = Tabela_hash[i];
@@ -242,6 +240,7 @@ void imprimeTabSim(FILE * listing)
       { ListaDeLinhas t = l->linhas;
         fprintf(listing," |  %-6s ",l->nome);
         fprintf(listing," |  %-1d ",l->id);
+        fprintf(listing," |  %-4d ",l->id_local);
         fprintf(listing," |  %-5s ",retStrTipo(l->tipo));
         fprintf(listing,"|  %-9s",l->escopo);
         fprintf(listing,"|  %-5d|",l->tamanho);

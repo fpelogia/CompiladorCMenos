@@ -12,6 +12,8 @@
 
 #define MAX_FUNC_DECL 50 // máximo de funções a serem declaradas
 
+#define MAX_VARS_TOTAL 1000 // máximo de variáveis a serem declaradas em todo o código
+
 // desativado por enquanto. não sei se é necessário fixar esse valor
 //#define GLOBAL_PART_SIZE 30 // numero de slots da memória para as coisas globais
 
@@ -183,6 +185,7 @@ void libera_registrador(int num);
 void libera_todos_os_registradores();
 
 // =================== Geração de Código Assembly =============================
+int treg_inverso ( char* tr );
 
 // Tipos de Instrução da arquitetura RVSP (https://github.com/fpelogia/RVSP)
 typedef enum{
@@ -234,9 +237,10 @@ int indiceEscopo(char* escopo);
 void percorreListaQuad(ListaQuad *lq);
 void gera_asm_R(char* op, char* c1, char* c2, char* c3);
 int eh_operacao(char* op);
-int var_endereco(char * nome, char* escopo, int* eh_global); // corpo está em symtab.c
+int var_id(char * nome, char* escopo, int* eh_global); // corpo está em symtab.c
 void gera_asm_LOAD(char* c1, char* c2, char* c3);
 void gera_asm_FUN(char* nome);
+void gera_asm_ARG(char* c1, char* c2, char* c3);
 void gera_asm_ASSIGN(char* c1, char* c2);
 void gera_asm_STORE(char* c1, char* c2, char* c3);
 void gera_asm_RET(char* c1);

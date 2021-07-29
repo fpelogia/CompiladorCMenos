@@ -12,9 +12,9 @@ ListaInstrAsm CodAsm;
 int gpr[N_GPRS]; // vetor com disponibilidade dos Registradores
 //ListaReg reg_escopo[MAX_FUNC_DECL];
 char* reg_temp_usado[N_GPRS + 1];
-int n_reg_temp_usado;//começa como zero
-
-
+int n_reg_temp_usado = 0;
+static int desl_acumulado[MAX_FUNC_DECL];
+static int desl_var[MAX_FUNC_DECL][MAX_VARS_TOTAL];
 
 void imprimeTokens(char* nomearq){
     FILE* fc = fopen("sample.c","r");
@@ -405,21 +405,7 @@ void insereQuad(ListaQuad *lq, char *op, char *c1, char *c2, char *c3){
 void imprimeListaQuad(ListaQuad *lq){
     NoQuad* lq_p = lq->prim;
     while(lq_p->prox != NULL){
-        if(strcmp(lq_p->quad->op, "CALL")==0){
-            char c1[strlen(lq_p->quad->c1)]; 
-            int i;
-            for (i = 0; i < strlen(lq_p->quad->c1); i++){
-                if(lq_p->quad->c1[i] != '|'){
-                    c1[i] = lq_p->quad->c1[i];
-                }else{
-                    c1[i] = '\0';
-                    break;
-                }
-            } 
-            printf("(%s,%s,%s,%s)\n",lq_p->quad->op, c1, lq_p->quad->c2, lq_p->quad->c3);
-        }else{
-            printf("(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
-        }
+        printf("(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
         lq_p = lq_p->prox;
     }
     printf("(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
@@ -503,6 +489,19 @@ void libera_todos_os_registradores(){
 }
 
 //==================== Geração de Código Assembly ====================================
+int treg_inverso ( char* tr ){
+    int i, count = 0;
+    char* string_num = malloc((strlen(tr))*sizeof(char));
+    for(i=1;i<strlen(tr);i++){
+        string_num[count++] = tr[i];
+        //printf("COOOOOM %c -> %c\n", string_num[count-1], tr[i]);
+    }
+    string_num[count] = '\0';
+    int val = atoi(string_num);
+    //printf("BOOOOOM %s -> %s => VAL:%d\n", tr, string_num, val);
+    free(string_num);
+    return val;
+}
 
 void inicializaListaInstrAsm(ListaInstrAsm *lia){
     lia->prim = NULL;
@@ -562,6 +561,7 @@ void percorreListaQuad(ListaQuad *lq){
     int primeira_fun = 1;
     NoQuad* lq_p = lq->prim;
     while(lq_p->prox != NULL){
+        printf("\t\t\t(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
         if(eh_operacao(lq_p->quad->op))   gera_asm_R(lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);        
         if(strcmp(lq_p->quad->op, "LOAD") == 0){
             gera_asm_LOAD(lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
@@ -579,6 +579,7 @@ void percorreListaQuad(ListaQuad *lq){
 
         if(strcmp(lq_p->quad->op, "ARG") == 0){
             argcount++; // sinaliza para os próximos LOADs
+            gera_asm_ARG(lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
         }
 
         if(strcmp(lq_p->quad->op, "ASSIGN") == 0){
@@ -610,7 +611,7 @@ void percorreListaQuad(ListaQuad *lq){
         }
         lq_p = lq_p->prox;
     }
-    //printf("(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
+    printf("\t\t\t(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
 }
 
 void gera_asm_FUN(char *nome){
@@ -649,15 +650,44 @@ void gera_asm_STORE(char* c1, char* c2, char* c3){
     // c1: nome da variável
     // c2: registrador com valor
     // c3: (opcional) indice
-    int desl, eh_global;
-    desl = var_endereco(c1, escopo, &eh_global);
+    int desl, eh_global, ie, id;
+    id = var_id(c1, escopo, &eh_global)-1;
+    if(eh_global){
+        ie = 0;
+    }else{
+        ie = indiceEscopo(escopo);
+    }
+    desl = desl_var[ie][id];
+    //printf("RECUPEREI DESLOCAMENTO %d PARA %s\n", desl, c1);
+    //desl = var_endereco(c1, escopo, &eh_global);
     if(strcmp(c3, " ")!=0){//vetor
-        desl += atoi(c3);
+        desl += treg_inverso(c3);
+        printf("OPA DESLOCAMENTO +IND %d: %d \n", treg_inverso(c3), desl);
     }
     if(eh_global){
         printf("sw $%s, $zero(%d)\n", c2, desl);
     }else{
         printf("sw $%s, $fp(%d)\n", c2, desl);
+    }
+}
+
+
+void gera_asm_ARG(char* c1, char* c2, char* c3){
+    // c1: tipo ("int" ou "int[]")
+    // c2: nome 
+    // c3: escopo
+    if(strcmp(c1, "int")==0){//variavel comum (passagem por valor)
+        int eg;
+        //printf("GUARDEI DESLOCAMENTO %d para %s | %d %d\n", desl_acumulado[indiceEscopo(escopo)]+1, c2, var_id(c2, escopo, &eg)-1, indiceEscopo(escopo));
+        desl_var[indiceEscopo(escopo)][var_id(c2, escopo, &eg)-1] = desl_acumulado[indiceEscopo(escopo)] + 1;
+        desl_acumulado[indiceEscopo(escopo)]++;
+        printf("addi $sp, $sp, 1\n");
+    }else{// vetor (passagem por referencia)
+        int eg;
+        //printf("GUARDEI DESLOCAMENTO %d para %s | %d %d\n", desl_acumulado[indiceEscopo(escopo)]+1, c2, var_id(c2, escopo, &eg)-1, indiceEscopo(escopo));
+        desl_var[indiceEscopo(escopo)][var_id(c2, escopo, &eg)-1] = desl_acumulado[indiceEscopo(escopo)] + 1;
+        desl_acumulado[indiceEscopo(escopo)]++;
+        printf("addi $sp, $sp, 1\n");
     }
 }
 
@@ -673,14 +703,21 @@ void gera_asm_ASSIGN(char* c1, char* c2){
 
 void gera_asm_LOAD(char* c1, char* c2, char* c3){
     // c1: registrador
-    // c3: (opcional) indice
+    // c3: (opcional) registrador contendo o indice
     if((c2[0] >= 48) && (c2[0] <= 57)){
         // c2 é um número
         printf("addi $%s, $zero, %d\n", c1, atoi(c2));
     }else if (argcount > 0){ // Carregamento de um argumento
         // c2 é o nome de uma variável
-        int desl, eh_global;
-        desl = var_endereco(c2, escopo, &eh_global);
+        int desl, eh_global, id, ie;
+        id = var_id(c2, escopo, &eh_global)-1;
+        if(eh_global){
+            ie = 0;
+        }else{
+            ie = indiceEscopo(escopo);
+        }
+        desl = desl_var[ie][id];
+        //printf("RECUPEREI DESLOCAMENTO %d PARA %s\n", desl, c2);
         if(strcmp(c3, " ")!=0){//vetor
             desl += atoi(c3);
         }
@@ -688,12 +725,18 @@ void gera_asm_LOAD(char* c1, char* c2, char* c3){
         argcount--;
     }else{
         // c2 é o nome de uma variável
-        int desl, eh_global;
-        desl = var_endereco(c2, escopo, &eh_global);
+        int desl, eh_global, id, ie;
+        id = var_id(c2, escopo, &eh_global)-1;
+        if(eh_global){
+            ie = 0;
+        }else{
+            ie = indiceEscopo(escopo);
+        }
+        desl = desl_var[ie][id];
+        //printf("RECUPEREI DESLOCAMENTO %d PARA %s | %d %d\n", desl, c2, id, ie);
         if(strcmp(c3, " ")!=0){//vetor
             desl += atoi(c3);
         }
-        printf("BUSQUEI %s e recebi desl %d\n", c2, desl);
         if(eh_global){
             printf("lw $%s, $zero(%d)\n", c1, desl);
         }else{
@@ -758,12 +801,21 @@ void gera_asm_ALLOC(char* c1, char* c2, char* c3){
         numglobals++;
     }
     if(strcmp(c3, " ") == 0) {
+        int eg;
+        //printf("GUARDEI DESLOCAMENTO %d para %s | %d %d\n", desl_acumulado[indiceEscopo(escopo)]+1, c1, var_id(c1, escopo, &eg)-1, indiceEscopo(escopo));
+        desl_var[indiceEscopo(escopo)][var_id(c1, escopo, &eg)-1] = desl_acumulado[indiceEscopo(escopo)] + 1;
+        desl_acumulado[indiceEscopo(escopo)]++;
         if(numglobals == 1){
             printf("addi $sp, $zero, 1\n");
         }else{
             printf("addi $sp, $sp, 1\n");
         }
     }else{// vetor
+        int eg;
+        //printf("GUARDEI DESLOCAMENTO %d para %s\n", desl_acumulado[indiceEscopo(escopo)]+1, c1);
+        printf("INDESC: %d VID-1: %d\n", indiceEscopo(escopo), var_id(c1, escopo, &eg)-1);
+        desl_var[indiceEscopo(escopo)][var_id(c1, escopo, &eg)-1] = desl_acumulado[indiceEscopo(escopo)] + 1;
+        desl_acumulado[indiceEscopo(escopo)] += atoi(c3);
         if(numglobals == 1){
             printf("addi $sp, $zero, %s\n", c3);
         }else{
