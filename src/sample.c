@@ -9,5 +9,5 @@ void main(void){
     int varx;
     int num;
     num = 2;
-    b[1] = func(5);
+    b[77] = func(5);
 }

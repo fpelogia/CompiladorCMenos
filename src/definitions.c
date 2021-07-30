@@ -561,7 +561,7 @@ void percorreListaQuad(ListaQuad *lq){
     int primeira_fun = 1;
     NoQuad* lq_p = lq->prim;
     while(lq_p->prox != NULL){
-        printf("\t\t\t(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
+        //printf("\t\t\t(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
         if(eh_operacao(lq_p->quad->op))   gera_asm_R(lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);        
         if(strcmp(lq_p->quad->op, "LOAD") == 0){
             gera_asm_LOAD(lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
@@ -570,7 +570,7 @@ void percorreListaQuad(ListaQuad *lq){
 
         if(strcmp(lq_p->quad->op, "FUN") == 0){
             if(primeira_fun){
-                printf("jal $zero main         (obs: pensar no endereço relativo \"antecipado\")\n");//trocar depois para o endereço relativo
+                printf("jal $zero main\n");//trocar depois para o endereço relativo
                 primeira_fun = 0;
             }
             escopo = lq_p->quad->c2;
@@ -611,7 +611,7 @@ void percorreListaQuad(ListaQuad *lq){
         }
         lq_p = lq_p->prox;
     }
-    printf("\t\t\t(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
+    //printf("\t\t\t(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
 }
 
 void gera_asm_FUN(char *nome){
@@ -734,13 +734,21 @@ void gera_asm_LOAD(char* c1, char* c2, char* c3){
         }
         desl = desl_var[ie][id];
         //printf("RECUPEREI DESLOCAMENTO %d PARA %s | %d %d\n", desl, c2, id, ie);
-        if(strcmp(c3, " ")!=0){//vetor
-            desl += atoi(c3);
-        }
         if(eh_global){
-            printf("lw $%s, $zero(%d)\n", c1, desl);
+            if(strcmp(c3, " ")!=0){//vetor
+                // uso c3 como base pra somar índice
+                printf("lw $%s, $%s(%d)\n", c1, c3, desl);
+            }else{
+                printf("lw $%s, $zero(%d)\n", c1, desl);
+            }
         }else{
-            printf("lw $%s, $fp(%d)\n", c1, desl);
+            if(strcmp(c3, " ")!=0){//vetor
+                // somo deslocamento do índice na base, por estar em registrador
+                printf("add $aux, $fp, $%s\n", c3);
+                printf("lw $%s, $aux(%d)\n", c1, desl);
+            }else{
+                printf("lw $%s, $fp(%d)\n", c1, desl);
+            }
         }
     }
     reporta_reg_temp(c1);

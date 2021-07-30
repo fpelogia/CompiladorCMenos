@@ -6,7 +6,7 @@
 
 #define MAX_TAM_TOKEN 100
 
-#define N_GPRS 28 // número de registradores de propósito geral
+#define N_GPRS 27 // número de registradores de propósito geral
 
 #define MEM_SLOTS 64 // 64 slots de 32 bits cada 
 

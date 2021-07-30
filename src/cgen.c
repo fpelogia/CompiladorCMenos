@@ -213,17 +213,17 @@ static void genExp( NoArvore * arv)
         cGen(arv->filho[0]);
         int t1 = tempnum;
         //tempnum = (tempnum + 1)%32;
-        tempnum = usa_registrador();
+        //tempnum = usa_registrador();
 
        //printf("(MUL, $t%d, 4, $t%d )\n", t1, tempnum);
-        insereQuad(&CodInter, "MUL", treg(t1), "4", treg(tempnum));
+        //insereQuad(&CodInter, "MUL", treg(t1), "4", treg(tempnum));
         //tempnum = (tempnum + 1)%32;
         tempnum = usa_registrador();
 
         //printf("(LOAD, $t%d, %s, $t%d )\n", tempnum, arv->atrib.nome, tempnum-1);
         insereQuad(&CodInter, "LOAD", treg(tempnum), arv->atrib.nome, treg(tempnum-1));
 
-        libera_registrador(tempnum-1);//[PERIGOSO]
+        //libera_registrador(tempnum-1);//[PERIGOSO]
 
       }else{
         //tempnum = (tempnum + 1)%32;
