@@ -1,13 +1,10 @@
-int a;
-int b[3];
-int func(int x, int x2){
-    /*int y;
-    y = b[1];*/
-    return x + x + x;
+int func(int a, int b){
+    if(a < b){
+        return 1;
+    }else{
+        return 0;
+    }
 }
 void main(void){
-    /*int varx;*/
-    int num;
-    num = 2;
-    b[77] = func(5, num);
+    func(5,10);
 }

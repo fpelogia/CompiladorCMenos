@@ -573,7 +573,7 @@ void percorreListaQuad(ListaQuad *lq){
 
         if(strcmp(lq_p->quad->op, "FUN") == 0){
             if(primeira_fun){
-                printf("jal $zero main\n");//trocar depois para o endereço relativo
+                printf("jal $aux main\n");//trocar depois para o endereço relativo
                 primeira_fun = 0;
             }
             escopo = lq_p->quad->c2;
@@ -628,22 +628,24 @@ void gera_asm_FUN(char *nome){
         total_ativacoes += 1 + numlocals[i];//
     }*/
     printf("\n%s:\n", nome);
-    if(strcmp(nome, "main") != 0){
-        printf("addi $sp, $sp, %d\n", 2);
+    if(strcmp(nome, "main") == 0 && numglobals == 0){
+        printf("addi $sp, $zero, %d\n", 1);
+    }else{
+        printf("addi $sp, $sp, %d\n", 1);
     }
-    printf("addi $fp, $zero, $sp\n");
-    /* fp(-1) conterá o endereço da função que chamou (não se aplica p/ main)
-     * fp(0) conterá o valor para retorno
+    printf("add $fp, $zero, $sp\n");
+    /* fp(0) conterá o endereço da função que chamou (não se aplica p/ main)
      */
 }
 
 void gera_asm_END(char* c1){
     // c1: nome da função a ser terminada
-    printf("add $fp, $zero, $fp(-1)\n");// fp volta a apontar para o frame da função que chamou
     if(strcmp(c1, "main")==0){
         printf("halt\n");
     }else{
-        printf("jalr $zero $ra\n");//pula de volta para a função que chamou
+        printf("add $fp, $zero, $fp(0)\n");// fp volta a apontar para o frame da função que chamou
+        printf("addi $sp, $fp, -1\n");
+        printf("jalr $aux $ra\n");//pula de volta para a função que chamou
     }
     tam_lista_escopos--; // [PERIGOSO]
     n_reg_temp_usado = 0;
@@ -670,7 +672,7 @@ void gera_asm_STORE(char* c1, char* c2, char* c3){
     //desl = var_endereco(c1, escopo, &eh_global);
     if(strcmp(c3, " ")!=0){//vetor
         desl += treg_inverso(c3);
-        printf("OPA DESLOCAMENTO +IND %d: %d \n", treg_inverso(c3), desl);
+        //printf("OPA DESLOCAMENTO +IND %d: %d \n", treg_inverso(c3), desl);
     }
     if(eh_global){
         printf("sw $%s, $zero(%d)\n", c2, desl);
@@ -796,17 +798,17 @@ void gera_asm_CALL(char* c1, char* c2, char* c3){
     
     //preenche valor para  argumentos
     for (i = 0; i < num_parametros; i++){
-        printf("sw $%s, $sp(%d)\n", pop(&pilha_reg_params), 2 + num_parametros - i);
+        printf("sw $%s, $sp(%d)\n", pop(&pilha_reg_params), 1 + num_parametros - i);
     }
 
-
+    printf("sw $fp, $sp(1)\n");// armazena valor do fp de quem chamou... pra ser recuperado dps
     printf("jal $ra, %s\n", c1);// no lugar do nome, enviar endereço relativo (conta com linhas)
     //restaura registradores
+    printf("addi $sp, $sp, %d\n", -1*n_reg_temp_usado);
     for (i = 0; i < n_reg_temp_usado; i++){
         printf("lw $%s, $sp(%d)\n", reg_temp_usado[i], i+1);
         count++;
     }
-    printf("addi $sp, $sp, %d\n", -1*n_reg_temp_usado);
 
     if(strcmp(c3," ")!=0){ // armazenar resultado no reg c3
         printf("add $%s, $rv, $zero\n", c3);
@@ -831,7 +833,6 @@ void gera_asm_ALLOC(char* c1, char* c2, char* c3){
     }else{// vetor
         int eg;
         //printf("GUARDEI DESLOCAMENTO %d para %s\n", desl_acumulado[indiceEscopo(escopo)]+1, c1);
-        printf("INDESC: %d VID-1: %d\n", indiceEscopo(escopo), var_id(c1, escopo, &eg)-1);
         desl_var[indiceEscopo(escopo)][var_id(c1, escopo, &eg)-1] = desl_acumulado[indiceEscopo(escopo)] + 1;
         desl_acumulado[indiceEscopo(escopo)] += atoi(c3);
         if(numglobals == 1){
