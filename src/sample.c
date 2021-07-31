@@ -1,10 +1,13 @@
-int func(int a, int b){
-    if(a < b){
+void func(int vet[]){
+    /*if(a < b){
         return 1;
     }else{
         return 0;
-    }
+    }*/
+    vet[3] = 3;
 }
 void main(void){
-    func(5,10);
+    /*int x;*/
+    int y[3];
+    func(y);
 }

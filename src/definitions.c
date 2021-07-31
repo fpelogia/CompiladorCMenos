@@ -659,7 +659,7 @@ void gera_asm_LAB(char* c1){
 void gera_asm_STORE(char* c1, char* c2, char* c3){
     // c1: nome da variável
     // c2: registrador com valor
-    // c3: (opcional) indice
+    // c3: (opcional) registrador com o indice
     int desl, eh_global, ie, id;
     id = var_id(c1, escopo, &eh_global)-1;
     if(eh_global){
@@ -670,14 +670,32 @@ void gera_asm_STORE(char* c1, char* c2, char* c3){
     desl = desl_var[ie][id];
     //printf("RECUPEREI DESLOCAMENTO %d PARA %s\n", desl, c1);
     //desl = var_endereco(c1, escopo, &eh_global);
+
     if(strcmp(c3, " ")!=0){//vetor
         desl += treg_inverso(c3);
         //printf("OPA DESLOCAMENTO +IND %d: %d \n", treg_inverso(c3), desl);
     }
     if(eh_global){
-        printf("sw $%s, $zero(%d)\n", c2, desl);
+        if(strcmp(c3, " ")!=0){//vetor
+            // uso c3 como base pra somar índice
+            printf("sw $%s, $%s(%d)\n", c2, c3, desl);
+        }else{
+            printf("sw $%s, $zero(%d)\n", c2, desl);
+        }
     }else{
-        printf("sw $%s, $fp(%d)\n", c2, desl);
+        if(strcmp(c3, " ")!=0){//vetor
+            // somo deslocamento do índice na base, por estar em registrador
+            if(desl <= argcount){// é argumento
+                printf("lw $aux, $fp(%d)\n", desl);//define base como valor na memória (referência)
+                printf("add $aux, $zero, $%s\n", c3);//soma desl. índice
+                printf("sw $%s, $aux(0)\n", c2); // para para o registrador de destino
+            }else{
+                printf("add $aux, $fp, $%s\n", c3);
+                printf("lw $%s, $aux(%d)\n", c1, desl);
+            }
+        }else{
+            printf("sw $%s, $fp(%d)\n", c2, desl);
+        }
     }
 }
 
@@ -741,7 +759,7 @@ void gera_asm_LOAD(char* c1, char* c2, char* c3){
                 if(desl <= argcount){// é argumento
                     printf("lw $aux, $fp(%d)\n", desl);//define base como valor na memória (referência)
                     printf("add $aux, $zero, $%s\n", c3);//soma desl. índice
-                    printf("addi $%s, $aux, $zero)\n"); // para para o registrador de destino
+                    printf("lw $%s, $aux(0)\n", c1); // passa para o registrador de destino
                 }else{
                     printf("add $aux, $fp, $%s\n", c3);
                     printf("lw $%s, $aux(%d)\n", c1, desl);
