@@ -15,6 +15,9 @@ char* reg_temp_usado[N_GPRS + 1];
 int n_reg_temp_usado = 0;
 static int desl_acumulado[MAX_FUNC_DECL];
 static int desl_var[MAX_FUNC_DECL][MAX_VARS_TOTAL];
+static Pilha pilha_reg_params;
+static int num_parametros = 0;
+
 
 void imprimeTokens(char* nomearq){
     FILE* fc = fopen("sample.c","r");
@@ -609,6 +612,11 @@ void percorreListaQuad(ListaQuad *lq){
         if(strcmp(lq_p->quad->op, "ALLOC") == 0){
             gera_asm_ALLOC(lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
         }
+
+        if(strcmp(lq_p->quad->op, "PARAM") == 0){
+            gera_asm_PARAM(lq_p->quad->c1);
+        }
+
         lq_p = lq_p->prox;
     }
     //printf("\t\t\t(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
@@ -693,8 +701,7 @@ void gera_asm_ARG(char* c1, char* c2, char* c3){
 
 void gera_asm_RET(char* c1){
     // c1: registrador com valor a ser retornado
-    // ideia: simplesmente carrega no endereço de memória que fp carrega
-    printf("sw $%s, $fp(0)\n", c1);
+    printf("add $rv, $%s, $zero\n", c1);
 }
 
 void gera_asm_ASSIGN(char* c1, char* c2){
@@ -707,22 +714,6 @@ void gera_asm_LOAD(char* c1, char* c2, char* c3){
     if((c2[0] >= 48) && (c2[0] <= 57)){
         // c2 é um número
         printf("addi $%s, $zero, %d\n", c1, atoi(c2));
-    }else if (argcount > 0){ // Carregamento de um argumento
-        // c2 é o nome de uma variável
-        int desl, eh_global, id, ie;
-        id = var_id(c2, escopo, &eh_global)-1;
-        if(eh_global){
-            ie = 0;
-        }else{
-            ie = indiceEscopo(escopo);
-        }
-        desl = desl_var[ie][id];
-        //printf("RECUPEREI DESLOCAMENTO %d PARA %s\n", desl, c2);
-        if(strcmp(c3, " ")!=0){//vetor
-            desl += atoi(c3);
-        }
-        printf("lw $%s, $ap(%d)\n", c1, desl);// nesse caso, nunca será global
-        argcount--;
     }else{
         // c2 é o nome de uma variável
         int desl, eh_global, id, ie;
@@ -734,6 +725,7 @@ void gera_asm_LOAD(char* c1, char* c2, char* c3){
         }
         desl = desl_var[ie][id];
         //printf("RECUPEREI DESLOCAMENTO %d PARA %s | %d %d\n", desl, c2, id, ie);
+
         if(eh_global){
             if(strcmp(c3, " ")!=0){//vetor
                 // uso c3 como base pra somar índice
@@ -744,8 +736,14 @@ void gera_asm_LOAD(char* c1, char* c2, char* c3){
         }else{
             if(strcmp(c3, " ")!=0){//vetor
                 // somo deslocamento do índice na base, por estar em registrador
-                printf("add $aux, $fp, $%s\n", c3);
-                printf("lw $%s, $aux(%d)\n", c1, desl);
+                if(desl <= argcount){// é argumento
+                    printf("lw $aux, $fp(%d)\n", desl);//define base como valor na memória (referência)
+                    printf("add $aux, $zero, $%s\n", c3);//soma desl. índice
+                    printf("addi $%s, $aux, $zero)\n"); // para para o registrador de destino
+                }else{
+                    printf("add $aux, $fp, $%s\n", c3);
+                    printf("lw $%s, $aux(%d)\n", c1, desl);
+                }
             }else{
                 printf("lw $%s, $fp(%d)\n", c1, desl);
             }
@@ -774,6 +772,11 @@ int eh_operacao(char* op){
     return strcmp(op, "ADD") == 0 || strcmp(op, "SUB") == 0  || strcmp(op, "MUL") == 0 || strcmp(op, "DIV") == 0 ;
 }
 
+void gera_asm_PARAM(char* c1){
+    push(&pilha_reg_params, c1);// empilha nome do registrador com o valor dentro
+    num_parametros++;
+}
+
 void gera_asm_CALL(char* c1, char* c2, char* c3){
     // c1: nome da função | nome escopo
     // c2: número de argumentos
@@ -786,20 +789,27 @@ void gera_asm_CALL(char* c1, char* c2, char* c3){
 
     //salva registradores
     for (i = 0; i < n_reg_temp_usado; i++){
-        printf("sw %s $sp(%d)\n", reg_temp_usado[i], i+1);
+        printf("sw $%s, $sp(%d)\n", reg_temp_usado[i], i+1);
         count++;
     }
     printf("addi $sp, $sp, %d\n", n_reg_temp_usado);
+    
+    //preenche valor para  argumentos
+    for (i = 0; i < num_parametros; i++){
+        printf("sw $%s, $sp(%d)\n", pop(&pilha_reg_params), 2 + num_parametros - i);
+    }
+
+
     printf("jal $ra, %s\n", c1);// no lugar do nome, enviar endereço relativo (conta com linhas)
     //restaura registradores
     for (i = 0; i < n_reg_temp_usado; i++){
-        printf("lw %s $sp(%d)\n", reg_temp_usado[i], i+1);
+        printf("lw $%s, $sp(%d)\n", reg_temp_usado[i], i+1);
         count++;
     }
     printf("addi $sp, $sp, %d\n", -1*n_reg_temp_usado);
 
-    if(strcmp(c3," ")==0){ // armazenar resultado no reg c3
-    
+    if(strcmp(c3," ")!=0){ // armazenar resultado no reg c3
+        printf("add $%s, $rv, $zero\n", c3);
     }
 }
 

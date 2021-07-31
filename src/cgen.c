@@ -155,6 +155,7 @@ static void genDecl( NoArvore * arv)
          param = 1;
          cGen(p1);//args
          //loads dos args
+         /*
          int i;
          for (i=0;i<param_list_size;i++){
             insereQuad(&CodInter, "LOAD",treg(tempnum), param_list[i], " ");
@@ -162,8 +163,11 @@ static void genDecl( NoArvore * arv)
 
             //tempnum = (tempnum + 1)%32;
          }
+         */
 
-         //tempnum--; [TODO]: PERIGOSOO--- PQ ISSO ESTAVA AQUI ?
+         //libera_registrador(tempnum);
+         //tempnum--; 
+
         
 
          param = 0;

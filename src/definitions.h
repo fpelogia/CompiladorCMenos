@@ -243,6 +243,7 @@ void gera_asm_FUN(char* nome);
 void gera_asm_ARG(char* c1, char* c2, char* c3);
 void gera_asm_ASSIGN(char* c1, char* c2);
 void gera_asm_STORE(char* c1, char* c2, char* c3);
+void gera_asm_PARAM(char* c1);
 void gera_asm_RET(char* c1);
 void gera_asm_LAB(char* c1);
 void gera_asm_END(char* c1);
