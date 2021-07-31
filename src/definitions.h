@@ -235,8 +235,11 @@ void registraEscopo(char* escopo);
 int indiceEscopo(char* escopo);
 
 void percorreListaQuad(ListaQuad *lq);
-void gera_asm_R(char* op, char* c1, char* c2, char* c3);
+void gera_asm_operacao(char* op, char* c1, char* c2, char* c3);
+void gera_asm_comparacao(char* op, char* c1, char* c2, char* c3);
 int eh_operacao(char* op);
+int eh_comparacao(char* op);
+void gera_asm_IFF(char* c1, char* c2);
 int var_id(char * nome, char* escopo, int* eh_global); // corpo está em symtab.c
 void gera_asm_LOAD(char* c1, char* c2, char* c3);
 void gera_asm_FUN(char* nome);
@@ -246,6 +249,7 @@ void gera_asm_STORE(char* c1, char* c2, char* c3);
 void gera_asm_PARAM(char* c1);
 void gera_asm_RET(char* c1);
 void gera_asm_LAB(char* c1);
+void gera_asm_GOTO(char* c1);
 void gera_asm_END(char* c1);
 void gera_asm_CALL(char* c1, char* c2, char* c3);
 void gera_asm_ALLOC(char* c1, char* c2, char* c3);

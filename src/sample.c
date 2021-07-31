@@ -1,13 +1,8 @@
-void func(int vet[]){
-    /*if(a < b){
-        return 1;
-    }else{
-        return 0;
-    }*/
-    vet[3] = 3;
+void func(int a, int b){
+    while(a <b){
+        a = a + 1;
+    }
 }
 void main(void){
-    /*int x;*/
-    int y[3];
-    func(y);
+    func(4,9);
 }

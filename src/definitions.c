@@ -565,7 +565,8 @@ void percorreListaQuad(ListaQuad *lq){
     NoQuad* lq_p = lq->prim;
     while(lq_p->prox != NULL){
         //printf("\t\t\t(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
-        if(eh_operacao(lq_p->quad->op))   gera_asm_R(lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);        
+        if(eh_operacao(lq_p->quad->op))   gera_asm_operacao(lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);        
+        if(eh_comparacao(lq_p->quad->op))   gera_asm_comparacao(lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);        
         if(strcmp(lq_p->quad->op, "LOAD") == 0){
             gera_asm_LOAD(lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
             
@@ -578,6 +579,11 @@ void percorreListaQuad(ListaQuad *lq){
             }
             escopo = lq_p->quad->c2;
             gera_asm_FUN(lq_p->quad->c2);
+        }
+
+
+        if(strcmp(lq_p->quad->op, "IFF") == 0){
+            gera_asm_IFF(lq_p->quad->c1, lq_p->quad->c2);
         }
 
         if(strcmp(lq_p->quad->op, "ARG") == 0){
@@ -599,6 +605,10 @@ void percorreListaQuad(ListaQuad *lq){
 
         if(strcmp(lq_p->quad->op, "LAB") == 0){
             gera_asm_LAB(lq_p->quad->c1);
+        }
+
+        if(strcmp(lq_p->quad->op, "GOTO") == 0){
+            gera_asm_GOTO(lq_p->quad->c1);
         }
 
         if(strcmp(lq_p->quad->op, "END") == 0){
@@ -654,6 +664,17 @@ void gera_asm_END(char* c1){
 void gera_asm_LAB(char* c1){
     // c1: nome do label a ser criado
     printf("%s:\n", c1);
+}
+
+void gera_asm_GOTO(char* c1){
+    // c1: nome do label de destino
+    printf("jal $aux %s\n", c1);
+}
+
+void gera_asm_IFF(char* c1, char* c2){
+    // c1: registrador com 0 ou 1 
+    // c2: nome do label a saltar caso seja 0
+    printf("beq $%s, $zero, %s\n", c1, c2);
 }
 
 void gera_asm_STORE(char* c1, char* c2, char* c3){
@@ -773,7 +794,33 @@ void gera_asm_LOAD(char* c1, char* c2, char* c3){
 }
 
 
-void gera_asm_R(char* op, char* c1, char* c2, char* c3){
+void gera_asm_comparacao(char* op, char* c1, char* c2, char* c3){
+    if(strcmp(op, "NEQ")==0){
+        printf("xor $%s, $%s, $%s\n", c3, c1, c2);
+        // xor bit a bit gera 0 caso o valor seja igual
+    }
+    if(strcmp(op, "EQUAL")==0){
+        printf("xnor $%s, $%s, $%s\n", c3, c1, c2);
+    }
+    if(strcmp(op, "LT")==0){
+        printf("slt $%s, $%s, $%s\n", c3, c1, c2);
+    }
+    if(strcmp(op, "GEQ")==0){
+        printf("slt $%s, $%s, $%s\n", c3, c1, c2);
+        printf("addi $aux, $zero, 1\n");
+        printf("sub $%s, $aux, $%s\n", c3, c3);
+    }
+    if(strcmp(op, "LEQ")==0){
+        printf("slet $%s, $%s, $%s\n", c3, c1, c2);
+    }
+    if(strcmp(op, "GT")==0){
+        printf("slet $%s, $%s, $%s\n", c3, c1, c2);
+        printf("addi $aux, $zero, 1\n");
+        printf("sub $%s, $aux, $%s\n", c3, c3);
+    }
+}
+
+void gera_asm_operacao(char* op, char* c1, char* c2, char* c3){
     if(strcmp(op, "ADD") == 0){
         printf("add $%s, $%s, $%s\n", c3, c1, c2);
     }
@@ -790,6 +837,10 @@ void gera_asm_R(char* op, char* c1, char* c2, char* c3){
 
 int eh_operacao(char* op){
     return strcmp(op, "ADD") == 0 || strcmp(op, "SUB") == 0  || strcmp(op, "MUL") == 0 || strcmp(op, "DIV") == 0 ;
+}
+
+int eh_comparacao(char* op){
+    return strcmp(op, "LT") == 0 || strcmp(op, "GT") == 0  || strcmp(op, "GEQ") == 0 || strcmp(op, "LEQ") || strcmp(op, "EQUAL")== 0 || strcmp(op, "NEQ") ;
 }
 
 void gera_asm_PARAM(char* c1){

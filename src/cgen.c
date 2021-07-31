@@ -72,8 +72,8 @@ static void genStmt( NoArvore * arv)
          p2 = arv->filho[1] ;
          l1 = labelnum++;
          l2 = labelnum++;
-         //printf("LABEL L%d\n",l1);
-         insereQuad(&CodInter,"LABEL",lnum(l1), " ", " ");
+         //printf("LAB L%d\n",l1);
+         insereQuad(&CodInter,"LAB",lnum(l1), " ", " ");
          cGen(p1); //condicao
          t1 = tempnum;
          //printf("(IFF, $t%d, L%d,  )\n", t1,l2);
@@ -81,8 +81,8 @@ static void genStmt( NoArvore * arv)
          cGen(p2); // loop
          //printf("(GOTO,L%d,  ,  )\n", l1);
          insereQuad(&CodInter,"GOTO",lnum(l1)," ", " ");
-         //printf("LABEL L%d\n",l2);
-         insereQuad(&CodInter,"LABEL",lnum(l2), " ", " ");
+         //printf("LAB L%d\n",l2);
+         insereQuad(&CodInter,"LAB",lnum(l2), " ", " ");
          break;
       case S_Atrib:
          p1 = arv->filho[0];
