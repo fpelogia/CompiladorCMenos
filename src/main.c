@@ -25,9 +25,17 @@ int main(int argc, char** argv){
     }
 
     printf("\n====================== Análise Léxica ===========================\n");
-    imprimeTokens("sample.c");    
+    if(argc < 2){
+        imprimeTokens("sample.c");    
+    }else{
+        imprimeTokens(argv[1]);    
+    }
     fclose(arq_cod_fonte);
-    arq_cod_fonte = fopen("sample.c","r");
+    if(argc < 2){
+        arq_cod_fonte = fopen("sample.c","r");
+    }else{
+        arq_cod_fonte = fopen(argv[1],"r");
+    }
     numlinha = 0;
 
     
@@ -61,7 +69,16 @@ int main(int argc, char** argv){
     if(argc < 2){
         arq_cod_bin = fopen("sample","w");
     }else{
-        char* nome_saida = strndup(argv[1], strlen(argv[1]) - 2);
+        char* nome_saida;
+        if(argc > 3){
+            if(strcmp(argv[2], "-o")==0){
+                nome_saida = strdup(argv[3]);
+            }else{
+                nome_saida = strndup(argv[1], strlen(argv[1]) - 2);
+            }
+        }else{
+            nome_saida = strndup(argv[1], strlen(argv[1]) - 2);
+        }
         arq_cod_bin = fopen(nome_saida,"w");
         free(nome_saida);
     }

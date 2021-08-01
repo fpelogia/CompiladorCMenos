@@ -24,7 +24,7 @@ char** CodBin;//código binário
 static int tam_cod_bin = 0;
 
 void imprimeTokens(char* nomearq){
-    FILE* fc = fopen("sample.c","r");
+    FILE* fc = fopen(nomearq,"r");
     if(fc == NULL){
         printf("Falha na leitura do código fonte");
         Erro = 1;
