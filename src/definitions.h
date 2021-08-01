@@ -6,16 +6,15 @@
 
 #define MAX_TAM_TOKEN 100
 
-#define N_GPRS 27 // número de registradores de propósito geral
-
 #define MEM_SLOTS 64 // 64 slots de 32 bits cada 
 
 #define MAX_FUNC_DECL 50 // máximo de funções a serem declaradas
 
+#define MAX_ENDERECOS 100 // tamanho máximo da lista de endereços absolutos
+
 #define MAX_VARS_TOTAL 1000 // máximo de variáveis a serem declaradas em todo o código
 
-// desativado por enquanto. não sei se é necessário fixar esse valor
-//#define GLOBAL_PART_SIZE 30 // numero de slots da memória para as coisas globais
+#define N_GPRS 26 // número de registradores de propósito geral
 
 #ifndef YYPARSER // Não importa o arquivo quando chamado pelo parse.y
 #include "parse.tab.h" //Gerado pela flag "-d" do bison
@@ -188,17 +187,22 @@ void libera_todos_os_registradores();
 int treg_inverso ( char* tr );
 
 // Tipos de Instrução da arquitetura RVSP (https://github.com/fpelogia/RVSP)
-typedef enum{
-    R, I, B, S
+typedef enum{ 
+    R, I, B, S, J 
 }TipoAsm;
 
+// Registradores de propósito específico
+enum sprs{$zero = 0, $aux = 27, $rv = 28, $fp = 29, $sp = 30, $ra = 31};
+// gprs vão de 1 a 26
+
 typedef struct {
-    TipoAsm tipo;
-    char* nome;
+    int tipo;
     int rd;
     int rs1;
     int rs2;
-    int imediato;
+    char* nome;
+    char* imediato;//antes da segunda passada
+    // imediato segura o nome da função ou label
 }InstrAsm;
 
 typedef struct SNoInstrAsm{
@@ -211,6 +215,7 @@ typedef struct{
 }ListaInstrAsm;
 
 void inicializaListaInstrAsm(ListaInstrAsm *lia);
+void insereInstrAsm(ListaInstrAsm* lia, TipoAsm tipo, char* nome, int rd, int rs1, int rs2, char* imediato);
 void destroiListaInstrAsm(ListaInstrAsm *lia);
 
 extern ListaInstrAsm CodAsm; // variável global com a lista de instrucoes assembly
@@ -254,37 +259,15 @@ void gera_asm_END(char* c1);
 void gera_asm_CALL(char* c1, char* c2, char* c3);
 void gera_asm_ALLOC(char* c1, char* c2, char* c3);
 
-// jeito que acho que deve ser:
-//typedef uint32_t endereco_m;
-typedef char* endereco_m; // por enquanto, para testar, seja o nome da funcao
+typedef struct{
+    char* nome;
+    int endereco;
+}end_abs;
 
-/*
-typedef struct variavel_s {
-    int deslocamento;// deslocamento em relação ao endereço
-    char *nome; // nome da variável
-    int32_t conteudo; //conteudo da variável
-    struct variavel_s* prox;
-}variavel;
-*/
+extern end_abs listaEnderecos[MAX_ENDERECOS];
+void preencheEnderecosASM(ListaInstrAsm *lia);
 
-typedef char* variavel; // por enquanto, para testar, seja o nome da variavel
-
-typedef struct area_ativacao_s {
-    endereco_m func_fp; // endereço de memória da área de ativação 
-    endereco_m quem_chamou; // endereço de memória da função que chamou
-    int32_t valor_retorno; // valor de retorno da função
-    variavel *lista_args; // lista de argumentos
-    variavel *lista_var_locais; // lista de variáveis locais
-    struct area_ativacao_s *prox;// próxima área de ativação
-} area_ativacao;
-
-
-void cadastraChamada(endereco_m func, endereco_m escopo, variavel* lista_args);
-
-
-/*
- * Pensar nas funções de interface
- * */
-
-
+// ============= Geração de Código Binário ============
+char* converte_n_bin(int x, int n);
+void gera_bin_R(InstrAsm* instr);
 

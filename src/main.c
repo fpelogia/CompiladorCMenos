@@ -11,7 +11,7 @@ char* lista_escopos[MAX_FUNC_DECL];
 int tam_lista_escopos = 0;
 int numlocals[MAX_FUNC_DECL];//número de variáveis de certo escopo
 
-int main(){
+int main(int argc, char** argv){
 
     arq_cod_fonte = fopen("sample.c","r");
     if(arq_cod_fonte == NULL){
@@ -52,8 +52,7 @@ int main(){
     inicializaListaInstrAsm(&CodAsm);
     percorreListaQuad(&CodInter); // Imprime Código Assembly
 
-    printf("\n");
-
+    preencheEnderecosASM(&CodAsm);
 
     // [TODO] Escrever funções para destruir Árvore, LQ, LIA
     //  darv
