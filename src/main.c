@@ -5,6 +5,7 @@
 //aloca as variaveis globais
 int numlinha = 0;
 FILE * arq_cod_fonte;
+FILE * arq_cod_bin;
 bool Erro;
 
 char* lista_escopos[MAX_FUNC_DECL];
@@ -12,10 +13,15 @@ int tam_lista_escopos = 0;
 int numlocals[MAX_FUNC_DECL];//número de variáveis de certo escopo
 
 int main(int argc, char** argv){
-
-    arq_cod_fonte = fopen("sample.c","r");
+    // Lê nome do arquivo e opções, se houver
+    if(argc < 2){
+        arq_cod_fonte = fopen("sample.c","r");
+    }else{
+        arq_cod_fonte = fopen(argv[1],"r");
+    }
     if(arq_cod_fonte == NULL){
         printf("Falha na leitura do código fonte\n");
+        return 1;
     }
 
     printf("\n====================== Análise Léxica ===========================\n");
@@ -52,14 +58,28 @@ int main(int argc, char** argv){
     inicializaListaInstrAsm(&CodAsm);
     percorreListaQuad(&CodInter); // Imprime Código Assembly
 
-    preencheEnderecosASM(&CodAsm);
+    if(argc < 2){
+        arq_cod_bin = fopen("sample","w");
+    }else{
+        char* nome_saida = strndup(argv[1], strlen(argv[1]) - 2);
+        arq_cod_bin = fopen(nome_saida,"w");
+        free(nome_saida);
+    }
+    if(arq_cod_bin == NULL){
+        printf("Falha ao gerar arquivo de saída! \n");
+        return 1;
+    }
 
+    printf("\n=============== Código Binário ==================\n\n");
+    preencheEnderecosASM(&CodAsm);
+    imprimeCodBin();
     // [TODO] Escrever funções para destruir Árvore, LQ, LIA
     //  darv
     //destroiListaQuad(&CodInter); 
     //destroiListaInstrAsm(&CodAsm); //nao funciona ainda
 
     fclose(arq_cod_fonte);
+    fclose(arq_cod_bin);
     return 0;
 }
 

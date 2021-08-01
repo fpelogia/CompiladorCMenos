@@ -20,7 +20,8 @@ static int num_instr_asm_geradas = 0; // importante
 end_abs listaEnderecos[MAX_ENDERECOS];
 static int tam_lista_enderecos = 0;
 
-
+char** CodBin;//código binário
+static int tam_cod_bin = 0;
 
 void imprimeTokens(char* nomearq){
     FILE* fc = fopen("sample.c","r");
@@ -1127,6 +1128,7 @@ void gera_asm_ALLOC(char* c1, char* c2, char* c3){
 
 //===================================================
 void preencheEnderecosASM(ListaInstrAsm *lia){
+    inicializaListaCodBin(num_instr_asm_geradas);
     NoInstrAsm* lia_p = lia->prim;
     while(lia_p->prox != NULL){
         //printf("%s %d %d %d %s\n", lia_p->instr->nome, lia_p->instr->rd, lia_p->instr->rs1, lia_p->instr->rs2, lia_p->instr->imediato);
@@ -1144,29 +1146,31 @@ void preencheEnderecosASM(ListaInstrAsm *lia){
             }
 
         }
-        if(strcmp(lia_p->instr->nome, "add")==0){
-            printf("CARACA!!\n");
-            gera_bin_R(lia_p->instr);
+        switch(lia_p->instr->tipo){
+            case R:
+                gera_bin_R(lia_p->instr);
+                break;
+            case I:
+                gera_bin_I(lia_p->instr);
+                break;
+            case J:
+                gera_bin_J(lia_p->instr);
+                break;
+            case B:
+                gera_bin_B(lia_p->instr);
+                break;
+            case S:
+                gera_bin_B(lia_p->instr);
+                // Tipo S gera binário igual o Tipo B
+                break;
         }
         lia_p = lia_p->prox;
     }
     printf("==> Lista de Instruções Assembly com endereços atualizados! \n");
+    printf("==> Código Binário Gerado ! \n");
 }
 
 // ======================== Geração de Código Binário ===============================
-void gera_bin_R(InstrAsm* instr){
-    char * binstr;
-    printf("%s ",instr->nome);
-    binstr = converte_n_bin(instr->rd, 5);
-    printf("%s ", binstr);
-    free(binstr);
-    binstr = converte_n_bin(instr->rs1, 5);
-    printf("%s ", binstr);
-    free(binstr);
-    binstr = converte_n_bin(instr->rs2, 5);
-    printf("%s \n", binstr);
-    free(binstr);
-}
 char* converte_n_bin(int x, int n){
     // 30 é maior do que qualquer campo
     char str[30] = {'\0'};
@@ -1194,5 +1198,346 @@ char* converte_n_bin(int x, int n){
     }
     //printf("%s\n", inv);
     return inv;
+}
+
+void gera_bin_R(InstrAsm* instr){
+    char * binstr;
+    char * instr_bin = calloc(34, sizeof(char));
+    // f7 rs2 rs1 f3 rd opcode
+    binstr = converte_n_bin(opcode_f3_f7(instr->nome, c_f7), 7);
+    //printf("%s ",binstr);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    binstr = converte_n_bin(instr->rs2, 5);
+    //printf("%s ", binstr);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    binstr = converte_n_bin(instr->rs1, 5);
+    //printf("%s ", binstr);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    binstr = converte_n_bin(opcode_f3_f7(instr->nome, c_f3), 3);
+    //printf("%s ",binstr);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    binstr = converte_n_bin(instr->rd, 5);
+    //printf("%s ", binstr);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    binstr = converte_n_bin(51, 7);
+    //printf("%s \n",binstr);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    CodBin[tam_cod_bin++] = instr_bin;
+}
+
+void gera_bin_I(InstrAsm* instr){
+    char * binstr;
+    char * instr_bin = calloc(34, sizeof(char));
+    // imed(12) rs1 f3 rd opcode
+    binstr = converte_n_bin(atoi(instr->imediato), 12);
+    //printf("%s ",binstr);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    binstr = converte_n_bin(instr->rs1, 5);
+    //printf("%s ", binstr);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    binstr = converte_n_bin(opcode_f3_f7(instr->nome, c_f3), 3);
+    //printf("%s ", binstr);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    binstr = converte_n_bin(instr->rd, 5);
+    //printf("%s ",binstr);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    binstr = converte_n_bin(opcode_f3_f7(instr->nome, c_op), 7);
+    //printf("%s \n", binstr);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    CodBin[tam_cod_bin++] = instr_bin;
+}
+
+void gera_bin_J(InstrAsm* instr){
+    char * binstr;
+    char * instr_bin = calloc(34, sizeof(char));
+    // imed(20) rd opcode
+    binstr = converte_n_bin(atoi(instr->imediato), 20);
+    //printf("%s ",binstr);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    binstr = converte_n_bin(instr->rd, 5);
+    //printf("%s ", binstr);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    binstr = converte_n_bin(opcode_f3_f7(instr->nome, c_op), 7);
+    //printf("%s \n", binstr);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    CodBin[tam_cod_bin++] = instr_bin;
+}
+
+void gera_bin_B(InstrAsm* instr){
+    char * binstr, *aux;
+    char * instr_bin = calloc(34, sizeof(char));
+    // imed(7) rs2 rs1 f3 imed(5) opcode
+    aux = converte_n_bin(atoi(instr->imediato), 12);
+    binstr = strndup(aux, 7);//primeiros 7 dig. do imediato
+    //printf("%s ", binstr);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    binstr = converte_n_bin(instr->rs2, 5);
+    //printf("%s ", binstr);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    binstr = converte_n_bin(instr->rs1, 5);
+    //printf("%s ", binstr);
+    strcat(instr_bin, binstr);
+    free(binstr);
+    
+    binstr = converte_n_bin(opcode_f3_f7(instr->nome, c_f3), 3);
+    //printf("%s ", binstr);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    binstr = strndup(aux+7, 5);//ultimos 5 dig. do imediato
+    //printf("%s ", binstr);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    binstr = converte_n_bin(opcode_f3_f7(instr->nome, c_op), 7);
+    //printf("%s \n", binstr);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    CodBin[tam_cod_bin++] = instr_bin;
+}
+
+void inicializaListaCodBin(int tam){
+    CodBin = malloc(tam*sizeof(char*));
+}
+void imprimeCodBin(){
+    int i;
+    for(i=0;i<tam_cod_bin;i++){
+        printf("%d: %s\n", i, CodBin[i]);
+        fprintf(arq_cod_bin, "%s\n",CodBin[i]);
+        free(CodBin[i]);
+    }
+}
+
+// de acordo com campo, a função pode retornar
+// opcode, funct3 ou funct7 da instrucao
+int opcode_f3_f7(char* nome, int campo){
+    //nome: nome da instrução
+//========================= Tipo R ====================
+    if(strcmp(nome, "add")==0){
+        switch(campo){
+            case c_op:
+                return 51;
+                break;
+            case c_f3:
+                return 0;
+                break;
+            case c_f7:
+                return 0;
+                break;
+            default:
+                Erro = 1;
+                break;
+        }
+    }else if(strcmp(nome, "sub")==0){
+        switch(campo){
+            case c_op:
+                return 51;
+                break;
+            case c_f3:
+                return 0;
+                break;
+            case c_f7:
+                return 32;
+                break;
+            default:
+                Erro = 1;
+                break;
+        }
+    }else if(strcmp(nome, "slt")==0){
+        switch(campo){
+            case c_op:
+                return 51;
+                break;
+            case c_f3:
+                return 2;
+                break;
+            case c_f7:
+                return 0;
+                break;
+            default:
+                Erro = 1;
+                break;
+        }
+    }else if(strcmp(nome, "slet")==0){
+        switch(campo){
+            case c_op:
+                return 51;
+                break;
+            case c_f3:
+                return 2;
+                break;
+            case c_f7:
+                return 32;
+                break;
+            default:
+                Erro = 1;
+                break;
+        }
+    }else if(strcmp(nome, "mul")==0){
+        switch(campo){
+            case c_op:
+                return 51;
+                break;
+            case c_f3:
+                return 1;
+                break;
+            case c_f7:
+                return 0;
+                break;
+            default:
+                Erro = 1;
+                break;
+        }
+    }else if(strcmp(nome, "div")==0){
+        switch(campo){
+            case c_op:
+                return 51;
+                break;
+            case c_f3:
+                return 1;
+                break;
+            case c_f7:
+                return 32;
+                break;
+            default:
+                Erro = 1;
+                break;
+        }
+    }else if(strcmp(nome, "xor")==0){
+        switch(campo){
+            case c_op:
+                return 51;
+                break;
+            case c_f3:
+                return 4;
+                break;
+            case c_f7:
+                return 0;
+                break;
+            default:
+                Erro = 1;
+                break;
+        }
+    }else if(strcmp(nome, "xnor")==0){
+        switch(campo){
+            case c_op:
+                return 51;
+                break;
+            case c_f3:
+                return 4;
+                break;
+            case c_f7:
+                return 32;
+                break;
+            default:
+                Erro = 1;
+                break;
+        }
+    //======================= Tipo I ====================
+    }else if(strcmp(nome, "addi")==0){
+        switch(campo){
+            case c_op:
+                return 19;
+                break;
+            case c_f3:
+                return 0;
+                break;
+            default:
+                Erro = 1;
+                break;
+        }
+    }else if(strcmp(nome, "jalr")==0){
+        switch(campo){
+            case c_op:
+                return 103;
+                break;
+            case c_f3:
+                return 0;
+                break;
+            default:
+                Erro = 1;
+                break;
+        }
+    }else if(strcmp(nome, "lw")==0){
+        switch(campo){
+            case c_op:
+                return 3;
+                break;
+            case c_f3:
+                return 2;
+                break;
+            default:
+                Erro = 1;
+                break;
+        }
+   // ======================= Tipo B ====================
+    }else if(strcmp(nome, "beq")==0){
+        switch(campo){
+            case c_op:
+                return 99;
+                break;
+            case c_f3:
+                return 0;
+                break;
+            default:
+                Erro = 1;
+                break;
+        }
+    //======================= Tipo J ====================
+    }else if(strcmp(nome, "jal")==0){
+        switch(campo){
+            case c_op:
+                return 111;
+                break;
+            default:
+                Erro = 1;
+                break;
+        }
+    //======================= Tipo S ====================
+    }else if(strcmp(nome, "sw")==0){
+        switch(campo){
+            case c_op:
+                return 35;
+                break;
+            case c_f3:
+                return 2;
+            default:
+                Erro = 1;
+                break;
+        }
+    }
 }
 

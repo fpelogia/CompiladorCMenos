@@ -31,11 +31,13 @@ typedef enum{
 } Token;
 */
 
+extern FILE* arq_cod_fonte; // arquivo com o código fonte a ser compilado
+extern FILE* arq_cod_bin; // arquivo que vai receber o código binário
+
 extern int yylineno;
 extern bool Erro;
 extern char* yytext;
 extern int numlinha;
-extern FILE* arq_cod_fonte; // arquivo com o código fonte a ser compilado
 extern char lexema[MAX_TAM_TOKEN + 1]; // armazena string do token reconhecido pelo scanner
 extern char ID_nome[MAX_TAM_TOKEN + 1]; // armazena lexema (nome) de tokens ID
 extern char NUM_val[MAX_TAM_TOKEN + 1]; // armazena string com valor de tokens NUM
@@ -268,6 +270,20 @@ extern end_abs listaEnderecos[MAX_ENDERECOS];
 void preencheEnderecosASM(ListaInstrAsm *lia);
 
 // ============= Geração de Código Binário ============
+enum campos{
+    c_op, c_f7, c_f3 
+};
 char* converte_n_bin(int x, int n);
 void gera_bin_R(InstrAsm* instr);
+void gera_bin_I(InstrAsm* instr);
+void gera_bin_J(InstrAsm* instr);
+void gera_bin_B(InstrAsm* instr);
+// tipo S gera binário igual ao tipo B
 
+extern char** CodBin;//código binário
+void inicializaListaCodBin(int tam);//deve receber nro de instr. asm
+void imprimeCodBin();
+
+// de acordo com campo, a função pode retornar
+// opcode, funct3 ou funct7 da instrucao
+int opcode_f3_f7(char* nome, int campo);
