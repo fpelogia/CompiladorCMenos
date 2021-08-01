@@ -591,7 +591,7 @@ void reporta_reg_temp(char* tr){
 void percorreListaQuad(ListaQuad *lq){ int primeira_fun = 1;
     NoQuad* lq_p = lq->prim;
     while(lq_p->prox != NULL){
-        printf("\t\t\t(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
+        //printf("\t\t\t(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
         if(eh_operacao(lq_p->quad->op))   gera_asm_operacao(lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);        
         if(eh_comparacao(lq_p->quad->op))   gera_asm_comparacao(lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);        
         if(strcmp(lq_p->quad->op, "LOAD") == 0){
@@ -658,7 +658,7 @@ void percorreListaQuad(ListaQuad *lq){ int primeira_fun = 1;
 
         lq_p = lq_p->prox;
     }
-    printf("\t\t\t(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
+    //printf("\t\t\t(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
     int i;
     printf("\n\n====== Lista de Endereços ======\n");
     for(i = 0; i < tam_lista_enderecos; i++){
