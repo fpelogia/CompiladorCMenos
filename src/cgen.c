@@ -154,6 +154,7 @@ static void genDecl( NoArvore * arv)
          }
          param = 1;
          cGen(p1);//args
+         
          //loads dos args
          /*
          int i;
@@ -167,8 +168,6 @@ static void genDecl( NoArvore * arv)
 
          //libera_registrador(tempnum);
          //tempnum--; 
-
-        
 
          param = 0;
          cGen(p2);//corpo
@@ -336,6 +335,5 @@ static void cGen( NoArvore * arv){
 void geraCod(NoArvore * arv){    
     inicializaPilha(&nome_var_pilha);
     cGen(arv);
-    //printf("(HALT, , , )\n\n");
     insereQuad(&CodInter, "HALT", " ", " ", " ");
 }

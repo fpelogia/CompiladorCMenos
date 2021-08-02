@@ -4,16 +4,15 @@
 #include <string.h>
 #include <stdint.h> // int32_t e uint32_t
 
+// Fase de Análise
 #define MAX_TAM_TOKEN 100
 
-#define MEM_SLOTS 64 // 64 slots de 32 bits cada 
 
+// Fase de Síntese
+#define MEM_SLOTS 256 // 256 slots de 32 bits cada 
 #define MAX_FUNC_DECL 50 // máximo de funções a serem declaradas
-
 #define MAX_ENDERECOS 100 // tamanho máximo da lista de endereços absolutos
-
 #define MAX_VARS_TOTAL 1000 // máximo de variáveis a serem declaradas em todo o código
-
 #define N_GPRS 26 // número de registradores de propósito geral
 
 #ifndef YYPARSER // Não importa o arquivo quando chamado pelo parse.y
@@ -21,19 +20,11 @@
 #define ENDFILE 0
 #endif
 
-/*
-typedef enum{
-    FIMARQ, ERRO,
-    ELSE, IF, INT, RETURN, VOID, WHILE,
-    ID,NUM,
-    IGUAL, IGUALIGUAL, DIF, MENOR, MAIOR, MENIGUAL, MAIIGUAL, MAIS, MENOS,
-    VEZES, DIV, ABREPAR, FECHAPAR, PVIRG, VIRG, ABRECOL, FECHACOL, ABRECH, FECHACH, COMENT, ENTER
-} Token;
-*/
-
+// Manipulação de Arquivos 
 extern FILE* arq_cod_fonte; // arquivo com o código fonte a ser compilado
 extern FILE* arq_cod_bin; // arquivo que vai receber o código binário
 
+// Auxiliares para Análise Léxica
 extern int yylineno;
 extern bool Erro;
 extern char* yytext;
@@ -42,12 +33,10 @@ extern char lexema[MAX_TAM_TOKEN + 1]; // armazena string do token reconhecido p
 extern char ID_nome[MAX_TAM_TOKEN + 1]; // armazena lexema (nome) de tokens ID
 extern char NUM_val[MAX_TAM_TOKEN + 1]; // armazena string com valor de tokens NUM
 
-
 #define MAX_LINHA 100
+
 // Roda scanner e imprime os tokens reconhecidos e seus lexemas
 void imprimeTokens(char* nomearq);
-
-
 
 typedef int Token; // yacc define automaticamente os valores inteiros dos Tokens
 
@@ -80,17 +69,11 @@ char* nome_token(Token token);
 Token retornaToken();
 // Função definida com ajuda da ferramenta bison (yacc)
 NoArvore* parse(void);
-
 void imprimeArvore( NoArvore * arv );
-
 NoArvore * novoNoDecl(TipoDecl tipo);
-
 NoArvore * novoNoStmt(TipoStmt tipo);
-
 NoArvore * novoNoExp(TipoExp tipo);
-
 char * retStrTipo(Tipo t);
-
 
 /* Procedimento insere_tab_sim insere o numero das linhas 
    e os locais de memoria na tabela de simbolos
@@ -186,8 +169,7 @@ void libera_registrador(int num);
 void libera_todos_os_registradores();
 
 // =================== Geração de Código Assembly =============================
-int treg_inverso ( char* tr );
-
+//
 // Tipos de Instrução da arquitetura RVSP (https://github.com/fpelogia/RVSP)
 typedef enum{ 
     R, I, B, S, J 
@@ -222,32 +204,25 @@ void destroiListaInstrAsm(ListaInstrAsm *lia);
 
 extern ListaInstrAsm CodAsm; // variável global com a lista de instrucoes assembly
 
-/*
-typedef struct{
-    int n_regs;
-    int reg[N_GPRS + 1];//tamanho máximo inclui o $ra
-}ListaReg;
-*/
-//extern ListaReg reg_escopo[MAX_FUNC_DECL];// registradores utilizados em cada funcao
-//void inicializa_reg_escopo();
-void reporta_reg_temp(char* tr);
-//void reporta_liberacao_tempreg(int n, char* escopo);
 
-
+// Variáveis globais auxiliares
 extern char* lista_escopos[MAX_FUNC_DECL];
 extern int tam_lista_escopos;
 extern int numlocals[MAX_FUNC_DECL];//número de variáveis de certo escopo
 
-void registraEscopo(char* escopo);
+// Funções auxiliares
+void registraEscopo(char* escopo); // é utilizada em analyze.c
 int indiceEscopo(char* escopo);
-
-void percorreListaQuad(ListaQuad *lq);
-void gera_asm_operacao(char* op, char* c1, char* c2, char* c3);
-void gera_asm_comparacao(char* op, char* c1, char* c2, char* c3);
+int var_id(char * nome, char* escopo, int* eh_global); // corpo está em symtab.c
+int treg_inverso ( char* tr ); // ($ti) => (i)
 int eh_operacao(char* op);
 int eh_comparacao(char* op);
-void gera_asm_IFF(char* c1, char* c2);
-int var_id(char * nome, char* escopo, int* eh_global); // corpo está em symtab.c
+
+// Funções Importantes para Geração do Código Assembly
+void percorreListaQuad(ListaQuad *lq);
+
+void gera_asm_operacao(char* op, char* c1, char* c2, char* c3);
+void gera_asm_comparacao(char* op, char* c1, char* c2, char* c3);
 void gera_asm_LOAD(char* c1, char* c2, char* c3);
 void gera_asm_FUN(char* nome);
 void gera_asm_ARG(char* c1, char* c2, char* c3);
@@ -256,24 +231,34 @@ void gera_asm_STORE(char* c1, char* c2, char* c3);
 void gera_asm_PARAM(char* c1);
 void gera_asm_RET(char* c1);
 void gera_asm_LAB(char* c1);
+void gera_asm_IFF(char* c1, char* c2);
 void gera_asm_GOTO(char* c1);
 void gera_asm_END(char* c1);
 void gera_asm_CALL(char* c1, char* c2, char* c3);
 void gera_asm_ALLOC(char* c1, char* c2, char* c3);
 
+// Tratamento de Endereços (para labels e funções)
 typedef struct{
     char* nome;
     int endereco;
 }end_abs;
 
 extern end_abs listaEnderecos[MAX_ENDERECOS];
-void preencheEnderecosASM(ListaInstrAsm *lia);
+void preencheEnderecosASM_geraBIN(ListaInstrAsm *lia);
 
 // ============= Geração de Código Binário ============
+
+// Gera representação binária com número de bits especifico
+char* converte_n_bin(int x, int n);
+
 enum campos{
     c_op, c_f7, c_f3 
 };
-char* converte_n_bin(int x, int n);
+
+// de acordo com campo, a função pode retornar
+// opcode, funct3 ou funct7 da instrucao
+int opcode_f3_f7(char* nome, int campo);
+
 void gera_bin_R(InstrAsm* instr);
 void gera_bin_I(InstrAsm* instr);
 void gera_bin_J(InstrAsm* instr);
@@ -284,6 +269,3 @@ extern char** CodBin;//código binário
 void inicializaListaCodBin(int tam);//deve receber nro de instr. asm
 void imprimeCodBin();
 
-// de acordo com campo, a função pode retornar
-// opcode, funct3 ou funct7 da instrucao
-int opcode_f3_f7(char* nome, int campo);

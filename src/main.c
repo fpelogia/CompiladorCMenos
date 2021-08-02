@@ -2,12 +2,11 @@
 #include <stdlib.h>
 #include "definitions.h"
 #define MAX_LINHA 100
-//aloca as variaveis globais
+
 int numlinha = 0;
 FILE * arq_cod_fonte;
 FILE * arq_cod_bin;
 bool Erro;
-
 char* lista_escopos[MAX_FUNC_DECL];
 int tam_lista_escopos = 0;
 int numlocals[MAX_FUNC_DECL];//número de variáveis de certo escopo
@@ -37,7 +36,6 @@ int main(int argc, char** argv){
         arq_cod_fonte = fopen(argv[1],"r");
     }
     numlinha = 0;
-
     
     NoArvore* arvoreSintatica;
     arvoreSintatica = parse();
@@ -88,12 +86,11 @@ int main(int argc, char** argv){
     }
 
     printf("\n=============== Código Binário ==================\n\n");
-    preencheEnderecosASM(&CodAsm);
+    preencheEnderecosASM_geraBIN(&CodAsm);
     imprimeCodBin();
-    // [TODO] Escrever funções para destruir Árvore, LQ, LIA
-    //  darv
+    
     //destroiListaQuad(&CodInter); 
-    //destroiListaInstrAsm(&CodAsm); //nao funciona ainda
+    //destroiListaInstrAsm(&CodAsm); 
 
     fclose(arq_cod_fonte);
     fclose(arq_cod_bin);

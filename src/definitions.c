@@ -451,36 +451,6 @@ int usa_registrador(){
     return -1;
 }
 
-
-/*
-void inicializa_reg_escopo(){
-    int i = 0;
-    for (i = 0; i< N_GPRS + 1; i++){
-        reg_escopo[i].n_regs = 0;
-    }
-}
-void reporta_tempreg(int n, char* escopo){
-    int i = indiceEscopo(escopo);
-    reg_escopo[i].reg[reg_escopo[i].n_regs] = n; // reporta uso do registrador
-    reg_escopo[i].n_regs++;// incrementa n_regs para escopo
-}
-
-void reporta_liberacao_tempreg(int n, char* escopo){
-    int ie = indiceEscopo(escopo);
-    int i, n_regs = reg_escopo[ie].n_regs, encontrou = 0;
-    for (i = 0; i < n_regs; i++){
-        if(i == n){
-            reg_escopo[ie].reg[reg_escopo[i].n_regs] = n; // reporta uso do registrador
-            encontrou = 1;
-        }
-        if(encontrou && i < n_regs - 1){
-            reg_escopo[ie].reg[i] = reg_escopo[ie].reg[i+1];
-        }
-    }
-    reg_escopo[ie].n_regs--;// decrementa n_regs para escopo
-}
-*/
-
 void libera_registrador(int num){
     gpr[num] = 0; //define como não mais utilizado
     //reporta_liberacao_tempreg(num, escopo);
@@ -496,16 +466,15 @@ void libera_todos_os_registradores(){
 }
 
 //==================== Geração de Código Assembly ====================================
+
 int treg_inverso ( char* tr ){
     int i, count = 0;
     char* string_num = malloc((strlen(tr))*sizeof(char));
     for(i=1;i<strlen(tr);i++){
         string_num[count++] = tr[i];
-        //printf("COOOOOM %c -> %c\n", string_num[count-1], tr[i]);
     }
     string_num[count] = '\0';
     int val = atoi(string_num);
-    //printf("BOOOOOM %s -> %s => VAL:%d\n", tr, string_num, val);
     free(string_num);
     return val;
 }
@@ -568,40 +537,30 @@ int indiceEscopo(char* escopo){
     int i = 0;
     for(i = 0; i< tam_lista_escopos; i++){
         if(strcmp(escopo, lista_escopos[i]) == 0){
-            return i; // cuidado futuramente, com escopo global....
+            return i;
         }
     }
 }
 
-void reporta_reg_temp(char* tr){
-    int i, ja_salvo = 0;
-    for (i = 0; i < n_reg_temp_usado; i++){
-        if(strcmp(tr, reg_temp_usado[i])==0){
-            ja_salvo = 1;
-            break;
-        }
-    }
-    if(!ja_salvo){// novo registrador
-        reg_temp_usado[n_reg_temp_usado++] = tr; 
-    }else{
-        
-    }
-}
-
-void percorreListaQuad(ListaQuad *lq){ int primeira_fun = 1;
+void percorreListaQuad(ListaQuad *lq){ 
+    int primeira_fun = 1;
     NoQuad* lq_p = lq->prim;
     while(lq_p->prox != NULL){
         //printf("\t\t\t(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
-        if(eh_operacao(lq_p->quad->op))   gera_asm_operacao(lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);        
-        if(eh_comparacao(lq_p->quad->op))   gera_asm_comparacao(lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);        
+
+        if(eh_operacao(lq_p->quad->op)){
+            gera_asm_operacao(lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);        
+        }
+        if(eh_comparacao(lq_p->quad->op)){
+            gera_asm_comparacao(lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);        
+        }
         if(strcmp(lq_p->quad->op, "LOAD") == 0){
             gera_asm_LOAD(lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
             
         }
-
         if(strcmp(lq_p->quad->op, "FUN") == 0){
             if(primeira_fun){
-                printf("jal $aux main\n");
+                printf("%d: jal $aux main\n",num_instr_asm_geradas);
                 TipoAsm tipo = J;
                 insereInstrAsm(&CodAsm, tipo, "jal", $aux, -1, -1, "main");
                 primeira_fun = 0;
@@ -609,7 +568,6 @@ void percorreListaQuad(ListaQuad *lq){ int primeira_fun = 1;
             escopo = lq_p->quad->c2;
             gera_asm_FUN(lq_p->quad->c2);
         }
-
 
         if(strcmp(lq_p->quad->op, "IFF") == 0){
             gera_asm_IFF(lq_p->quad->c1, lq_p->quad->c2);
@@ -659,6 +617,7 @@ void percorreListaQuad(ListaQuad *lq){ int primeira_fun = 1;
         lq_p = lq_p->prox;
     }
     //printf("\t\t\t(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
+    
     int i;
     printf("\n\n====== Lista de Endereços ======\n");
     for(i = 0; i < tam_lista_enderecos; i++){
@@ -668,12 +627,10 @@ void percorreListaQuad(ListaQuad *lq){ int primeira_fun = 1;
 }
 
 void gera_asm_FUN(char *nome){
-    int i;
-    /*for (i = 1; i < tam_lista_escopos; i++){
-        total_ativacoes += 1 + numlocals[i];//
-    }*/
+
     TipoAsm tipo;
     printf("\n%s:\n", nome);
+
     // registra funcao na lista de endereços, para obter endereco abs depois
     end_abs ea;
     ea.nome = nome;
@@ -681,15 +638,15 @@ void gera_asm_FUN(char *nome){
     listaEnderecos[tam_lista_enderecos++] = ea;
 
     if(strcmp(nome, "main") == 0 && numglobals == 0){
-        printf("addi $sp, $zero, %d\n", 1);
+        printf("%d: addi $sp, $zero, %d\n",num_instr_asm_geradas, 1);
         tipo = I;
         insereInstrAsm(&CodAsm, tipo, "addi", $sp, $zero, -1, "1");
     }else{
-        printf("addi $sp, $sp, %d\n", 1);
+        printf("%d: addi $sp, $sp, %d\n",num_instr_asm_geradas, 1);
         tipo = I;
         insereInstrAsm(&CodAsm, tipo, "addi", $sp, $sp, -1, "1");
     }
-    printf("add $fp, $zero, $sp\n");
+    printf("%d: add $fp, $zero, $sp\n",num_instr_asm_geradas);
     tipo = R;
     insereInstrAsm(&CodAsm, tipo, "add", $fp, $zero, $sp, "");
     /* fp(0) conterá o endereço da função que chamou (não se aplica p/ main)
@@ -699,16 +656,14 @@ void gera_asm_FUN(char *nome){
 void gera_asm_END(char* c1){
     // c1: nome da função a ser terminada
     TipoAsm tipo;
-    if(strcmp(c1, "main")==0){
-        printf("halt\n");
-    }else{
-        printf("lw $fp, $fp(0)\n");// fp volta a apontar para o frame da função que chamou
+    if(strcmp(c1, "main")!=0){
+        printf("%d: lw $fp, $fp(0)\n",num_instr_asm_geradas);// fp volta a apontar para o frame da função que chamou
         tipo = I;
         insereInstrAsm(&CodAsm, tipo, "lw", $fp, $fp, -1, "0");
 
-        printf("addi $sp, $fp, -1\n");
+        printf("%d: addi $sp, $fp, -1\n",num_instr_asm_geradas);
         insereInstrAsm(&CodAsm, tipo, "addi", $sp, $fp, -1, "-1");
-        printf("jalr $aux, $ra(0)\n");//pula de volta para a função que chamou
+        printf("%d: jalr $aux, $ra(0)\n",num_instr_asm_geradas);//pula de volta para a função que chamou
         insereInstrAsm(&CodAsm, tipo, "jalr", $aux, $ra, -1, "0");
     }
     tam_lista_escopos--; // [PERIGOSO]
@@ -726,7 +681,7 @@ void gera_asm_LAB(char* c1){
 
 void gera_asm_GOTO(char* c1){
     // c1: nome do label de destino
-    printf("jal $aux %s\n", c1);
+    printf("%d: jal $aux %s\n",num_instr_asm_geradas, c1);
     TipoAsm tipo = J;
     insereInstrAsm(&CodAsm, tipo, "jal", $aux, -1, -1, c1);
 }
@@ -734,7 +689,7 @@ void gera_asm_GOTO(char* c1){
 void gera_asm_IFF(char* c1, char* c2){
     // c1: registrador com 0 ou 1 
     // c2: nome do label a saltar caso seja 0
-    printf("beq $%s, $zero, %s\n", c1, c2);
+    printf("%d: beq $%s, $zero, %s\n",num_instr_asm_geradas, c1, c2);
     TipoAsm tipo = B;
     insereInstrAsm(&CodAsm, tipo, "beq", -1, treg_inverso(c1), $zero, c2);
 }
@@ -752,23 +707,20 @@ void gera_asm_STORE(char* c1, char* c2, char* c3){
         ie = indiceEscopo(escopo);
     }
     desl = desl_var[ie][id];
-    //printf("RECUPEREI DESLOCAMENTO %d PARA %s\n", desl, c1);
-    //desl = var_endereco(c1, escopo, &eh_global);
 
     if(strcmp(c3, " ")!=0){//vetor
         desl += treg_inverso(c3);
-        //printf("OPA DESLOCAMENTO +IND %d: %d \n", treg_inverso(c3), desl);
     }
     if(eh_global){
         char* strdesl = malloc(4*sizeof(char));
         if(strcmp(c3, " ")!=0){//vetor
             // uso c3 como base pra somar índice
-            printf("sw $%s, $%s(%d)\n", c2, c3, desl);
+            printf("%d: sw $%s, $%s(%d)\n",num_instr_asm_geradas, c2, c3, desl);
             tipo = S;
             sprintf(strdesl,"%d",desl);
             insereInstrAsm(&CodAsm, tipo, "sw", -1, treg_inverso(c3), treg_inverso(c2), strdesl);
         }else{
-            printf("sw $%s, $zero(%d)\n", c2, desl);
+            printf("%d: sw $%s, $zero(%d)\n",num_instr_asm_geradas, c2, desl);
             tipo = S;
             sprintf(strdesl,"%d",desl);
             insereInstrAsm(&CodAsm, tipo, "sw", -1, $zero, treg_inverso(c2), strdesl);
@@ -780,21 +732,21 @@ void gera_asm_STORE(char* c1, char* c2, char* c3){
             
             char* strdesl = malloc(4*sizeof(char));
             if(desl <= argcount){// é argumento
-                printf("lw $aux, $fp(%d)\n", desl);//define base como valor na memória (referência)
+                printf("%d: lw $aux, $fp(%d)\n",num_instr_asm_geradas, desl);//define base como valor na memória (referência)
                 tipo = I;
                 sprintf(strdesl,"%d",desl);
                 insereInstrAsm(&CodAsm, tipo, "lw", $aux, $fp, -1, strdesl);
-                printf("add $aux, $zero, $%s\n", c3);//soma desl. índice
+                printf("%d: add $aux, $zero, $%s\n",num_instr_asm_geradas, c3);//soma desl. índice
                 tipo = R;
                 insereInstrAsm(&CodAsm, tipo, "add", $aux, $zero, treg_inverso(c3), "");
-                printf("sw $%s, $aux(0)\n", c2); // para para o registrador de destino
+                printf("%d: sw $%s, $aux(0)\n",num_instr_asm_geradas, c2); // para para o registrador de destino
                 tipo = S;
                 insereInstrAsm(&CodAsm, tipo, "sw", -1, $aux, treg_inverso(c2), "0");
             }else{
-                printf("add $aux, $fp, $%s\n", c3);
+                printf("%d: add $aux, $fp, $%s\n",num_instr_asm_geradas, c3);
                 tipo = R;
                 insereInstrAsm(&CodAsm, tipo, "add", $aux, $fp, treg_inverso(c3), "");
-                printf("lw $%s, $aux(%d)\n", c1, desl);
+                printf("%d: lw $%s, $aux(%d)\n",num_instr_asm_geradas, c1, desl);
                 tipo = I;
                 sprintf(strdesl,"%d",desl);
                 insereInstrAsm(&CodAsm, tipo, "lw", treg_inverso(c1), $aux, -1, strdesl);
@@ -802,7 +754,7 @@ void gera_asm_STORE(char* c1, char* c2, char* c3){
             free(strdesl);
         }else{
             char* strdesl = malloc(4*sizeof(char));
-            printf("sw $%s, $fp(%d)\n", c2, desl);
+            printf("%d: sw $%s, $fp(%d)\n",num_instr_asm_geradas, c2, desl);
             tipo = S;
             sprintf(strdesl,"%d",desl);
             insereInstrAsm(&CodAsm, tipo, "sw", -1, $fp, treg_inverso(c2), strdesl);
@@ -818,18 +770,16 @@ void gera_asm_ARG(char* c1, char* c2, char* c3){
     // c3: escopo
     if(strcmp(c1, "int")==0){//variavel comum (passagem por valor)
         int eg;
-        //printf("GUARDEI DESLOCAMENTO %d para %s | %d %d\n", desl_acumulado[indiceEscopo(escopo)]+1, c2, var_id(c2, escopo, &eg)-1, indiceEscopo(escopo));
         desl_var[indiceEscopo(escopo)][var_id(c2, escopo, &eg)-1] = desl_acumulado[indiceEscopo(escopo)] + 1;
         desl_acumulado[indiceEscopo(escopo)]++;
-        printf("addi $sp, $sp, 1\n");
+        printf("%d: addi $sp, $sp, 1\n",num_instr_asm_geradas);
         TipoAsm tipo = I;
         insereInstrAsm(&CodAsm, tipo, "addi", $sp, $sp, -1, "1");
     }else{// vetor (passagem por referencia)
         int eg;
-        //printf("GUARDEI DESLOCAMENTO %d para %s | %d %d\n", desl_acumulado[indiceEscopo(escopo)]+1, c2, var_id(c2, escopo, &eg)-1, indiceEscopo(escopo));
         desl_var[indiceEscopo(escopo)][var_id(c2, escopo, &eg)-1] = desl_acumulado[indiceEscopo(escopo)] + 1;
         desl_acumulado[indiceEscopo(escopo)]++;
-        printf("addi $sp, $sp, 1\n");
+        printf("%d: addi $sp, $sp, 1\n",num_instr_asm_geradas);
         TipoAsm tipo = I;
         insereInstrAsm(&CodAsm, tipo, "addi", $sp, $sp, -1, "1");
     }
@@ -837,13 +787,13 @@ void gera_asm_ARG(char* c1, char* c2, char* c3){
 
 void gera_asm_RET(char* c1){
     // c1: registrador com valor a ser retornado
-    printf("add $rv, $%s, $zero\n", c1);
+    printf("%d: add $rv, $%s, $zero\n",num_instr_asm_geradas, c1);
     TipoAsm tipo = R;
     insereInstrAsm(&CodAsm, tipo, "add", $rv, treg_inverso(c1), $zero, "");
 }
 
 void gera_asm_ASSIGN(char* c1, char* c2){
-    printf("add $%s, $%s, $zero\n", c1, c2);
+    printf("%d: add $%s, $%s, $zero\n",num_instr_asm_geradas, c1, c2);
     TipoAsm tipo = R;
     insereInstrAsm(&CodAsm, tipo, "add", treg_inverso(c1), treg_inverso(c2), $zero, "");
 }
@@ -854,7 +804,7 @@ void gera_asm_LOAD(char* c1, char* c2, char* c3){
     TipoAsm tipo;
     if(((c2[0] >= 48) && (c2[0] <= 57))&&(c2[0] != '-')){
         // c2 é um número
-        printf("addi $%s, $zero, %d\n", c1, atoi(c2));
+        printf("%d: addi $%s, $zero, %d\n",num_instr_asm_geradas, c1, atoi(c2));
         TipoAsm tipo = I;
         insereInstrAsm(&CodAsm, tipo, "addi", treg_inverso(c1), $zero, -1, c2);
     }else{
@@ -867,18 +817,17 @@ void gera_asm_LOAD(char* c1, char* c2, char* c3){
             ie = indiceEscopo(escopo);
         }
         desl = desl_var[ie][id];
-        //printf("RECUPEREI DESLOCAMENTO %d PARA %s | %d %d\n", desl, c2, id, ie);
 
         char* strdesl = malloc(4*sizeof(char));
         if(eh_global){
             if(strcmp(c3, " ")!=0){//vetor
                 // uso c3 como base pra somar índice
-                printf("lw $%s, $%s(%d)\n", c1, c3, desl);
+                printf("%d: lw $%s, $%s(%d)\n",num_instr_asm_geradas, c1, c3, desl);
                 tipo = I;
                 sprintf(strdesl,"%d",desl);
                 insereInstrAsm(&CodAsm, tipo, "lw", treg_inverso(c1), treg_inverso(c3), -1, strdesl);
             }else{
-                printf("lw $%s, $zero(%d)\n", c1, desl);
+                printf("%d: lw $%s, $zero(%d)\n",num_instr_asm_geradas, c1, desl);
                 tipo = I;
                 sprintf(strdesl,"%d",desl);
                 insereInstrAsm(&CodAsm, tipo, "lw", treg_inverso(c1), $zero, -1, strdesl);
@@ -887,27 +836,27 @@ void gera_asm_LOAD(char* c1, char* c2, char* c3){
             if(strcmp(c3, " ")!=0){//vetor
                 // somo deslocamento do índice na base, por estar em registrador
                 if(desl <= argcount){// é argumento
-                    printf("lw $aux, $fp(%d)\n", desl);//define base como valor na memória (referência)
+                    printf("%d: lw $aux, $fp(%d)\n",num_instr_asm_geradas, desl);//define base como valor na memória (referência)
                     tipo = I;
                     sprintf(strdesl,"%d",desl);
                     insereInstrAsm(&CodAsm, tipo, "lw", $aux, $fp, -1, strdesl);
-                    printf("add $aux, $zero, $%s\n", c3);//soma desl. índice
+                    printf("%d: add $aux, $zero, $%s\n",num_instr_asm_geradas, c3);//soma desl. índice
                     tipo = R;
                     insereInstrAsm(&CodAsm, tipo, "add", $aux, $zero, treg_inverso(c3), "");
-                    printf("lw $%s, $aux(0)\n", c1); // passa para o registrador de destino
+                    printf("%d: lw $%s, $aux(0)\n",num_instr_asm_geradas, c1); // passa para o registrador de destino
                     tipo = I;
                     insereInstrAsm(&CodAsm, tipo, "lw", treg_inverso(c1), $aux, -1, "0");
                 }else{
-                    printf("add $aux, $fp, $%s\n", c3);
+                    printf("%d: add $aux, $fp, $%s\n",num_instr_asm_geradas, c3);
                     TipoAsm tipo = R;
                     insereInstrAsm(&CodAsm, tipo, "add", $aux, $fp, treg_inverso(c3), "");
-                    printf("lw $%s, $aux(%d)\n", c1, desl);
+                    printf("%d: lw $%s, $aux(%d)\n",num_instr_asm_geradas, c1, desl);
                     tipo = I;
                     sprintf(strdesl,"%d",desl);
                     insereInstrAsm(&CodAsm, tipo, "lw", treg_inverso(c1), $aux, -1, strdesl);
                 }
             }else{
-                printf("lw $%s, $fp(%d)\n", c1, desl);
+                printf("%d: lw $%s, $fp(%d)\n",num_instr_asm_geradas, c1, desl);
                 tipo = I;
                 sprintf(strdesl,"%d",desl);
                 insereInstrAsm(&CodAsm, tipo, "lw", treg_inverso(c1), $fp, -1, strdesl);
@@ -915,52 +864,51 @@ void gera_asm_LOAD(char* c1, char* c2, char* c3){
         }
         free(strdesl);
     }
-    reporta_reg_temp(c1);
 }
 
 
 void gera_asm_comparacao(char* op, char* c1, char* c2, char* c3){
     TipoAsm tipo;
     if(strcmp(op, "NEQ")==0){
-        printf("xor $%s, $%s, $%s\n", c3, c1, c2);
+        printf("%d: xor $%s, $%s, $%s\n",num_instr_asm_geradas, c3, c1, c2);
         // xor bit a bit gera 0 caso o valor seja igual
         tipo = R;
         insereInstrAsm(&CodAsm, tipo, "xor", treg_inverso(c3), treg_inverso(c1), treg_inverso(c2), "");
     }
     if(strcmp(op, "EQUAL")==0){
-        printf("xnor $%s, $%s, $%s\n", c3, c1, c2);
+        printf("%d: xnor $%s, $%s, $%s\n",num_instr_asm_geradas, c3, c1, c2);
         tipo = R;
         insereInstrAsm(&CodAsm, tipo, "xnor", treg_inverso(c3), treg_inverso(c1), treg_inverso(c2), "");
     }
     if(strcmp(op, "LT")==0){
-        printf("slt $%s, $%s, $%s\n", c3, c1, c2);
+        printf("%d: slt $%s, $%s, $%s\n",num_instr_asm_geradas, c3, c1, c2);
         tipo = R;
         insereInstrAsm(&CodAsm, tipo, "slt", treg_inverso(c3), treg_inverso(c1), treg_inverso(c2), "");
     }
     if(strcmp(op, "GEQ")==0){
-        printf("slt $%s, $%s, $%s\n", c3, c1, c2);
+        printf("%d: slt $%s, $%s, $%s\n",num_instr_asm_geradas, c3, c1, c2);
         tipo = R;
         insereInstrAsm(&CodAsm, tipo, "slt", treg_inverso(c3), treg_inverso(c1), treg_inverso(c2), "");
-        printf("addi $aux, $zero, 1\n");
+        printf("%d: addi $aux, $zero, 1\n",num_instr_asm_geradas);
         tipo = I;
         insereInstrAsm(&CodAsm, tipo, "addi", $aux, $zero, -1, "1");
-        printf("sub $%s, $aux, $%s\n", c3, c3);
+        printf("%d: sub $%s, $aux, $%s\n",num_instr_asm_geradas, c3, c3);
         tipo = R;
         insereInstrAsm(&CodAsm, tipo, "sub", treg_inverso(c3), $aux, treg_inverso(c3), "");
     }
     if(strcmp(op, "LEQ")==0){
-        printf("slet $%s, $%s, $%s\n", c3, c1, c2);
+        printf("%d: slet $%s, $%s, $%s\n",num_instr_asm_geradas, c3, c1, c2);
         tipo = R;
         insereInstrAsm(&CodAsm, tipo, "slet", treg_inverso(c3), treg_inverso(c1), treg_inverso(c2), "");
     }
     if(strcmp(op, "GT")==0){
-        printf("slet $%s, $%s, $%s\n", c3, c1, c2);
+        printf("%d: slet $%s, $%s, $%s\n",num_instr_asm_geradas, c3, c1, c2);
         tipo = R;
         insereInstrAsm(&CodAsm, tipo, "slet", treg_inverso(c3), treg_inverso(c1), treg_inverso(c2), "");
-        printf("addi $aux, $zero, 1\n");
+        printf("%d: addi $aux, $zero, 1\n",num_instr_asm_geradas);
         TipoAsm tipo = I;
         insereInstrAsm(&CodAsm, tipo, "addi", $aux, $zero, -1, "1");
-        printf("sub $%s, $aux, $%s\n", c3, c3);
+        printf("%d: sub $%s, $aux, $%s\n",num_instr_asm_geradas, c3, c3);
         tipo = R;
         insereInstrAsm(&CodAsm, tipo, "sub", treg_inverso(c3), $aux, treg_inverso(c3), "");
     }
@@ -968,22 +916,22 @@ void gera_asm_comparacao(char* op, char* c1, char* c2, char* c3){
 
 void gera_asm_operacao(char* op, char* c1, char* c2, char* c3){
     if(strcmp(op, "ADD") == 0){
-        printf("add $%s, $%s, $%s\n", c3, c1, c2);
+        printf("%d: add $%s, $%s, $%s\n",num_instr_asm_geradas, c3, c1, c2);
         TipoAsm tipo = R;
         insereInstrAsm(&CodAsm, tipo, "add", treg_inverso(c3), treg_inverso(c1), treg_inverso(c2), "");
     }
     if(strcmp(op, "SUB") == 0){
-        printf("sub $%s, $%s, $%s\n", c3, c1, c2);
+        printf("%d: sub $%s, $%s, $%s\n",num_instr_asm_geradas, c3, c1, c2);
         TipoAsm tipo = R;
         insereInstrAsm(&CodAsm, tipo, "sub", treg_inverso(c3), treg_inverso(c1), treg_inverso(c2), "");
     }
     if(strcmp(op, "MUL") == 0){
-        printf("mul $%s, $%s, $%s\n", c3, c1, c2);
+        printf("%d: mul $%s, $%s, $%s\n",num_instr_asm_geradas, c3, c1, c2);
         TipoAsm tipo = R;
         insereInstrAsm(&CodAsm, tipo, "mul", treg_inverso(c3), treg_inverso(c1), treg_inverso(c2), "");
     }
     if(strcmp(op, "DIV") == 0){
-        printf("div $%s, $%s, $%s\n", c3, c1, c2);
+        printf("%d: div $%s, $%s, $%s\n",num_instr_asm_geradas, c3, c1, c2);
         TipoAsm tipo = R;
         insereInstrAsm(&CodAsm, tipo, "div", treg_inverso(c3), treg_inverso(c1), treg_inverso(c2), "");
     }
@@ -1008,7 +956,7 @@ void gera_asm_CALL(char* c1, char* c2, char* c3){
     TipoAsm tipo;
 
     if(strcmp(c1, "input") == 0){
-        printf("jal $ra, input\n");
+        printf("%d: jal $ra, input\n",num_instr_asm_geradas);
         tipo = J;
         insereInstrAsm(&CodAsm, tipo, "jal", $ra, -1, -1, "input");
         return;
@@ -1016,15 +964,15 @@ void gera_asm_CALL(char* c1, char* c2, char* c3){
     if(strcmp(c1, "output") == 0){
         if(atoi(c2) > 0){
             char* par_r = pop(&pilha_reg_params);
-            printf("add $aux, $zero, $%s\n", par_r);
+            printf("%d: add $aux, $zero, $%s\n",num_instr_asm_geradas, par_r);
             TipoAsm tipo = R;
             insereInstrAsm(&CodAsm, tipo, "add", $aux, $zero, treg_inverso(par_r), "");
         }
-        printf("jal $ra, output\n");
+        printf("%d: jal $ra, output\n",num_instr_asm_geradas);
         tipo = J;
         insereInstrAsm(&CodAsm, tipo, "jal", $ra, -1, -1, "output");
         if(strcmp(c3, " ") != 0){
-            printf("add $%s, $rv, $zero\n", c3);
+            printf("%d: add $%s, $rv, $zero\n",num_instr_asm_geradas, c3);
             TipoAsm tipo = R;
             insereInstrAsm(&CodAsm, tipo, "add", treg_inverso(c3), $rv, $zero,  "");
         }
@@ -1033,24 +981,14 @@ void gera_asm_CALL(char* c1, char* c2, char* c3){
 
     int count = 1, n_regs, ie, i;
     ie = indiceEscopo(escopo);
-    //n_regs = reg_escopo[ie].n_regs;
 
     char* str = malloc(4*sizeof(char));
-    //salva registradores
-    /*tipo = S;
-    for (i = 0; i < n_reg_temp_usado; i++){
-        printf("sw $%s, $sp(%d)\n", reg_temp_usado[i], i+1);
-        sprintf(str,"%d",i+1);
-        insereInstrAsm(&CodAsm, tipo, "sw", -1, $sp, treg_inverso(reg_temp_usado[i]), str);
-        count++;
-    }
-    printf("addi $sp, $sp, %d\n", n_reg_temp_usado);
-    */
-
     char* qtdreg = malloc(4*sizeof(char));
+
     sprintf(qtdreg,"%d",n_reg_temp_usado);
     tipo = I;
     insereInstrAsm(&CodAsm, tipo, "addi", $sp, $sp, -1, qtdreg);
+
     free(qtdreg);
     
     //preenche valor para  argumentos
@@ -1059,34 +997,21 @@ void gera_asm_CALL(char* c1, char* c2, char* c3){
     int num_parametros = atoi(c2);
     for (i = 0; i < num_parametros; i++){
         reg_param = pop(&pilha_reg_params);
-        printf("sw $%s, $sp(%d)\n", reg_param, 1 + num_parametros - i);
+        printf("%d: sw $%s, $sp(%d)\n",num_instr_asm_geradas, reg_param, 1 + num_parametros - i);
         sprintf(str,"%d",1 + num_parametros - i);
         insereInstrAsm(&CodAsm, tipo, "sw", -1, $sp, treg_inverso(reg_param), str);
     }
 
-    printf("sw $fp, $sp(1)\n");// armazena valor do fp de quem chamou... pra ser recuperado dps
+    printf("%d: sw $fp, $sp(1)\n",num_instr_asm_geradas);// armazena valor do fp de quem chamou... pra ser recuperado dps
     insereInstrAsm(&CodAsm, tipo, "sw", -1, $sp, $fp, "1");
-    printf("jal $ra, %s\n", c1);// no lugar do nome, enviar endereço relativo (conta com linhas)
+    printf("%d: jal $ra, %s\n",num_instr_asm_geradas, c1);// no lugar do nome, enviar endereço relativo (conta com linhas)
     tipo = J;
     insereInstrAsm(&CodAsm, tipo, "jal", $ra, -1, -1, c1);
 
-    //restaura registradores
-    /*
-    printf("addi $sp, $sp, %d\n", -1*n_reg_temp_usado);
-    sprintf(qtdreg,"%d",-1*n_reg_temp_usado);
-    insereInstrAsm(&CodAsm, tipo, "addi", $sp, $fp, -1, qtdreg);
-    tipo = I;
-    for (i = 0; i < n_reg_temp_usado; i++){
-        printf("lw $%s, $sp(%d)\n", reg_temp_usado[i], i+1);
-        sprintf(str,"%d",i+1);
-        insereInstrAsm(&CodAsm, tipo, "lw", treg_inverso(reg_temp_usado[i]), $sp, -1, str);
-        count++;
-    }
-    */
     free(str);
 
     if(strcmp(c3," ")!=0){ // armazenar resultado no reg c3
-        printf("add $%s, $rv, $zero\n", c3);
+        printf("%d: add $%s, $rv, $zero\n",num_instr_asm_geradas, c3);
         TipoAsm tipo = R;
         insereInstrAsm(&CodAsm, tipo, "add", treg_inverso(c3), $rv, $zero, "");
     }
@@ -1099,41 +1024,39 @@ void gera_asm_ALLOC(char* c1, char* c2, char* c3){
     }
     if(strcmp(c3, " ") == 0) {
         int eg;
-        //printf("GUARDEI DESLOCAMENTO %d para %s | %d %d\n", desl_acumulado[indiceEscopo(escopo)]+1, c1, var_id(c1, escopo, &eg)-1, indiceEscopo(escopo));
         desl_var[indiceEscopo(escopo)][var_id(c1, escopo, &eg)-1] = desl_acumulado[indiceEscopo(escopo)] + 1;
         desl_acumulado[indiceEscopo(escopo)]++;
         TipoAsm tipo = I;
         if(numglobals == 1){
-            printf("addi $sp, $zero, 1\n");
+            printf("%d: addi $sp, $zero, 1\n",num_instr_asm_geradas);
             insereInstrAsm(&CodAsm, tipo, "addi", $sp, $zero, -1, "1");
         }else{
-            printf("addi $sp, $sp, 1\n");
+            printf("%d: addi $sp, $sp, 1\n",num_instr_asm_geradas);
             insereInstrAsm(&CodAsm, tipo, "addi", $sp, $sp, -1, "1");
         }
     }else{// vetor
         int eg;
-        //printf("GUARDEI DESLOCAMENTO %d para %s\n", desl_acumulado[indiceEscopo(escopo)]+1, c1);
         desl_var[indiceEscopo(escopo)][var_id(c1, escopo, &eg)-1] = desl_acumulado[indiceEscopo(escopo)] + 1;
         desl_acumulado[indiceEscopo(escopo)] += atoi(c3);
         TipoAsm tipo = I;
         if(numglobals == 1){
-            printf("addi $sp, $zero, %s\n", c3);
+            printf("%d: addi $sp, $zero, %s\n",num_instr_asm_geradas, c3);
             insereInstrAsm(&CodAsm, tipo, "addi", $sp, $zero, -1, c3);
         }else{
-            printf("addi $sp, $sp, %s\n", c3);
+            printf("%d: addi $sp, $sp, %s\n",num_instr_asm_geradas, c3);
             insereInstrAsm(&CodAsm, tipo, "addi", $sp, $sp, -1, c3);
         }
     }
 }
 
-//===================================================
-void preencheEnderecosASM(ListaInstrAsm *lia){
+//================( Gerador de Código Binário )======================
+
+void preencheEnderecosASM_geraBIN(ListaInstrAsm *lia){
+
     inicializaListaCodBin(num_instr_asm_geradas);
     NoInstrAsm* lia_p = lia->prim;
+
     while(lia_p->prox != NULL){
-        //printf("%s %d %d %d %s\n", lia_p->instr->nome, lia_p->instr->rd, lia_p->instr->rs1, lia_p->instr->rs2, lia_p->instr->imediato);
-        //int a;
-        //scanf("%d", &a);
         char c = lia_p->instr->imediato[0];
         if((c >= 'a' && c <= 'z') || c == 'L'){
             int i;
@@ -1166,8 +1089,8 @@ void preencheEnderecosASM(ListaInstrAsm *lia){
         }
         lia_p = lia_p->prox;
     }
-    printf("==> Lista de Instruções Assembly com endereços atualizados! \n");
-    printf("==> Código Binário Gerado ! \n");
+    printf("\n==> Lista de Instruções Assembly com endereços atualizados! \n");
+    printf("==> Código Binário Gerado ! \n\n");
 }
 
 // ======================== Geração de Código Binário ===============================
@@ -1177,14 +1100,12 @@ char* converte_n_bin(int x, int n){
     char* inv = calloc(30, sizeof(char));
     int tam = 0;
     while(x >= 2){
-        //printf("%d\n", x%2);
         if(x%2 == 0)
             str[tam++] = '0';
         else
             str[tam++] = '1';
         x /= 2;
     }
-    //printf("%d\n", x/2);
     if(x == 0)
         str[tam] = '0';
     else
@@ -1196,7 +1117,6 @@ char* converte_n_bin(int x, int n){
     for(i = 0; i <= tam; i ++){
         inv[extra + i] = str[tam - i];
     }
-    //printf("%s\n", inv);
     return inv;
 }
 
@@ -1205,32 +1125,26 @@ void gera_bin_R(InstrAsm* instr){
     char * instr_bin = calloc(34, sizeof(char));
     // f7 rs2 rs1 f3 rd opcode
     binstr = converte_n_bin(opcode_f3_f7(instr->nome, c_f7), 7);
-    //printf("%s ",binstr);
     strcat(instr_bin, binstr);
     free(binstr);
 
     binstr = converte_n_bin(instr->rs2, 5);
-    //printf("%s ", binstr);
     strcat(instr_bin, binstr);
     free(binstr);
 
     binstr = converte_n_bin(instr->rs1, 5);
-    //printf("%s ", binstr);
     strcat(instr_bin, binstr);
     free(binstr);
 
     binstr = converte_n_bin(opcode_f3_f7(instr->nome, c_f3), 3);
-    //printf("%s ",binstr);
     strcat(instr_bin, binstr);
     free(binstr);
 
     binstr = converte_n_bin(instr->rd, 5);
-    //printf("%s ", binstr);
     strcat(instr_bin, binstr);
     free(binstr);
 
     binstr = converte_n_bin(51, 7);
-    //printf("%s \n",binstr);
     strcat(instr_bin, binstr);
     free(binstr);
 
@@ -1241,28 +1155,24 @@ void gera_bin_I(InstrAsm* instr){
     char * binstr;
     char * instr_bin = calloc(34, sizeof(char));
     // imed(12) rs1 f3 rd opcode
+
     binstr = converte_n_bin(atoi(instr->imediato), 12);
-    //printf("%s ",binstr);
     strcat(instr_bin, binstr);
     free(binstr);
 
     binstr = converte_n_bin(instr->rs1, 5);
-    //printf("%s ", binstr);
     strcat(instr_bin, binstr);
     free(binstr);
 
     binstr = converte_n_bin(opcode_f3_f7(instr->nome, c_f3), 3);
-    //printf("%s ", binstr);
     strcat(instr_bin, binstr);
     free(binstr);
 
     binstr = converte_n_bin(instr->rd, 5);
-    //printf("%s ",binstr);
     strcat(instr_bin, binstr);
     free(binstr);
 
     binstr = converte_n_bin(opcode_f3_f7(instr->nome, c_op), 7);
-    //printf("%s \n", binstr);
     strcat(instr_bin, binstr);
     free(binstr);
 
@@ -1273,18 +1183,16 @@ void gera_bin_J(InstrAsm* instr){
     char * binstr;
     char * instr_bin = calloc(34, sizeof(char));
     // imed(20) rd opcode
+
     binstr = converte_n_bin(atoi(instr->imediato), 20);
-    //printf("%s ",binstr);
     strcat(instr_bin, binstr);
     free(binstr);
 
     binstr = converte_n_bin(instr->rd, 5);
-    //printf("%s ", binstr);
     strcat(instr_bin, binstr);
     free(binstr);
 
     binstr = converte_n_bin(opcode_f3_f7(instr->nome, c_op), 7);
-    //printf("%s \n", binstr);
     strcat(instr_bin, binstr);
     free(binstr);
 
@@ -1295,34 +1203,29 @@ void gera_bin_B(InstrAsm* instr){
     char * binstr, *aux;
     char * instr_bin = calloc(34, sizeof(char));
     // imed(7) rs2 rs1 f3 imed(5) opcode
+
     aux = converte_n_bin(atoi(instr->imediato), 12);
     binstr = strndup(aux, 7);//primeiros 7 dig. do imediato
-    //printf("%s ", binstr);
     strcat(instr_bin, binstr);
     free(binstr);
 
     binstr = converte_n_bin(instr->rs2, 5);
-    //printf("%s ", binstr);
     strcat(instr_bin, binstr);
     free(binstr);
 
     binstr = converte_n_bin(instr->rs1, 5);
-    //printf("%s ", binstr);
     strcat(instr_bin, binstr);
     free(binstr);
     
     binstr = converte_n_bin(opcode_f3_f7(instr->nome, c_f3), 3);
-    //printf("%s ", binstr);
     strcat(instr_bin, binstr);
     free(binstr);
 
     binstr = strndup(aux+7, 5);//ultimos 5 dig. do imediato
-    //printf("%s ", binstr);
     strcat(instr_bin, binstr);
     free(binstr);
 
     binstr = converte_n_bin(opcode_f3_f7(instr->nome, c_op), 7);
-    //printf("%s \n", binstr);
     strcat(instr_bin, binstr);
     free(binstr);
 
