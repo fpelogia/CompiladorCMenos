@@ -1089,6 +1089,38 @@ void preencheEnderecosASM_geraBIN(ListaInstrAsm *lia){
         }
         lia_p = lia_p->prox;
     }
+    char c = lia_p->instr->imediato[0];
+    if((c >= 'a' && c <= 'z') || c == 'L'){
+        int i;
+        for (i = 0; i < tam_lista_enderecos; i ++){
+            if(strcmp(lia_p->instr->imediato, listaEnderecos[i].nome) == 0){
+                char* str_endereco = malloc(10*sizeof(char));
+                sprintf(str_endereco,"%d",listaEnderecos[i].endereco);
+                lia_p->instr->imediato = str_endereco; 
+            }
+        }
+
+    }
+    printf("ASM: %s\n", lia_p->instr->nome);
+    switch(lia_p->instr->tipo){
+        case R:
+            gera_bin_R(lia_p->instr);
+            break;
+        case I:
+            gera_bin_I(lia_p->instr);
+            break;
+        case J:
+            gera_bin_J(lia_p->instr);
+            break;
+        case B:
+            gera_bin_B(lia_p->instr);
+            break;
+        case S:
+            gera_bin_B(lia_p->instr);
+            // Tipo S gera binário igual o Tipo B
+            break;
+    }
+
     printf("\n==> Lista de Instruções Assembly com endereços atualizados! \n");
     printf("==> Código Binário Gerado ! \n\n");
 }

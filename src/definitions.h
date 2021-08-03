@@ -73,6 +73,7 @@ void imprimeArvore( NoArvore * arv );
 NoArvore * novoNoDecl(TipoDecl tipo);
 NoArvore * novoNoStmt(TipoStmt tipo);
 NoArvore * novoNoExp(TipoExp tipo);
+
 char * retStrTipo(Tipo t);
 
 /* Procedimento insere_tab_sim insere o numero das linhas 

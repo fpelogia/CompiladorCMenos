@@ -1,0 +1,17 @@
+ _____ _   _ _____ ____  _____ ____    ___     _______ _       ____  
+| ____| \ | |_   _|  _ \| ____/ ___|  / \ \   / / ____| |     |___ \ 
+|  _| |  \| | | | | |_) |  _|| |  _  / _ \ \ / /|  _| | |       __) |
+| |___| |\  | | | |  _ <| |__| |_| |/ ___ \ V / | |___| |___   / __/ 
+|_____|_| \_| |_| |_| \_\_____\____/_/   \_\_/  |_____|_____| |_____|
+
+
+Aluno: Frederico José Ribeiro Pelogia
+
+Disciplina: Laboratório de Compiladores ADE 2021.1
+
+Conteúdo:
+    -> Implementação da Fase de síntese do Compilador
+        -> Gerador de Código Intermediário (Entr. 1) - Ok
+        -> Gerador de Código Assembly
+        -> Gerador de Código Binário
+                                                                     

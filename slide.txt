@@ -1,4 +1,3 @@
-                  
                       [Trabalho Final de Compiladores - ADE 2020.2 ]
 
 Grupo:
