@@ -51,27 +51,35 @@ void imprimeTokens(char* nomearq){
             nlsalva = numlinha;
         }
         printf("\n%d: %s", nlsalva, linha);
+        char* nome_tok;
+        nome_tok = nome_token(rt);
         if(leftover){
             if(rt == ID || rt == NUM){
-                printf("\t%d: %s, val= %s\n",numlinha, nome_token(rt), yytext);
+                printf("\t%d: %s, val= %s\n",numlinha, nome_tok, yytext);
             }else{
-                printf("\t%d: %s\n",numlinha, nome_token(rt));
+                printf("\t%d: %s\n",numlinha, nome_tok);
             }
             leftover = false;
         }
+        free(nome_tok);
         do{
             rt = retornaToken();
-            if(rt == EOF ) break;
+            nome_tok = nome_token(rt);
+            if(rt == EOF ){
+                free(nome_tok);
+                break;
+            }
             else if(numlinha != nlsalva){
                 leftover = true;
-                
+                free(nome_tok);
                 break;
             }
             if(rt == ID || rt == NUM){
-                printf("\t%d: %s, val= %s\n",numlinha, nome_token(rt), yytext);
+                printf("\t%d: %s, val= %s\n",numlinha, nome_tok, yytext);
             }else{
-                printf("\t%d: %s\n",numlinha, nome_token(rt));
+                printf("\t%d: %s\n",numlinha, nome_tok);
             }
+            free(nome_tok);
         }while(1);
     }
     fclose(fc);
@@ -193,7 +201,9 @@ void imprimeArvore( NoArvore * arv )
     else if (arv->tipo_de_no==TExp)
     { switch (arv->tipo.exp) {
         case E_Op:
-          fprintf(stdout,"Op:%s\n", nome_token(arv->atrib.op));
+          char* nome_tok = nome_token(arv->atrib.op);
+          fprintf(stdout,"Op:%s\n", nome_tok );
+          free(nome_tok);
           break;
         case E_Num:
           fprintf(stdout,"Num: %d\n",arv->atrib.val);
@@ -388,8 +398,8 @@ void inicializaListaQuad(ListaQuad *lq){
 }
 
 void insereQuad(ListaQuad *lq, char *op, char *c1, char *c2, char *c3){
-    NoQuad *novoNoQ = malloc(sizeof(NoQuad*));
-    Quad *novaQ = malloc(sizeof(Quad*));
+    NoQuad *novoNoQ = malloc(sizeof(NoQuad));
+    Quad *novaQ = malloc(sizeof(Quad));
     novaQ->op = strdup(op);
     novaQ->c1 = strdup(c1);
     novaQ->c2 = strdup(c2);
@@ -401,7 +411,6 @@ void insereQuad(ListaQuad *lq, char *op, char *c1, char *c2, char *c3){
         NoQuad* lq_p = lq->prim;
         while(lq_p->prox != NULL){
             lq_p = lq_p->prox;
-            //lq_p->prox = novoNoQ;
         }
         lq_p->prox = novoNoQ;
     }else{
@@ -419,21 +428,14 @@ void imprimeListaQuad(ListaQuad *lq){
 }
 
 void destroiListaQuad(ListaQuad *lq){
-    NoQuad* lq_p;
-    do{
-        if(lq->prim == NULL){
-            break;
-        }
-        lq_p = lq->prim;
-        while(lq_p->prox != NULL){
-            lq_p = lq_p->prox;
-        }
-        //free(lq_p->quad);
-        free(lq_p);
-        lq_p = NULL;
-    }while(lq_p != NULL);
-    if(lq->prim != NULL)
-        free(lq->prim);
+    NoQuad* lq_p = lq->prim;
+    while(lq_p->prox != NULL){
+        NoQuad* aux = lq_p;
+        lq_p = lq_p->prox;
+        free(aux->quad);
+        free(aux);
+    }
+    lq = NULL;
 }
 //==================== Gerenciamento de registradores ================================
 
@@ -484,8 +486,8 @@ void inicializaListaInstrAsm(ListaInstrAsm *lia){
 }
 
 void insereInstrAsm(ListaInstrAsm* lia, TipoAsm tipo, char* nome, int rd, int rs1, int rs2, char* imediato){
-    NoInstrAsm *novoNoIASM = malloc(sizeof(NoInstrAsm*));
-    InstrAsm *novaIASM = malloc(sizeof(InstrAsm*));
+    NoInstrAsm *novoNoIASM = malloc(sizeof(NoInstrAsm));
+    InstrAsm *novaIASM = malloc(sizeof(InstrAsm));
     novaIASM->tipo = tipo;
     novaIASM->nome = strdup(nome);
     novaIASM->rd = rd;
@@ -509,21 +511,14 @@ void insereInstrAsm(ListaInstrAsm* lia, TipoAsm tipo, char* nome, int rd, int rs
 
 
 void destroiListaInstrAsm(ListaInstrAsm *lia){
-    // Essa função não está funcionando
-    // tentar corrigir depois
-    NoInstrAsm* lia_p;
-    do{
-        if(lia->prim == NULL){
-            break;
-        }
-        lia_p = lia->prim;
-        while(lia_p->prox != NULL){
-            lia_p = lia_p->prox;
-        }
-        free(lia_p);
-    }while(lia_p != NULL);
-    if(lia->prim != NULL)
-        free(lia->prim);
+    NoInstrAsm* lia_p = lia->prim;
+    while(lia_p->prox != NULL){
+        NoInstrAsm* aux = lia_p;
+        lia_p = lia_p->prox;
+        free(aux->instr);
+        free(aux);
+    }
+    lia = NULL;
 }
 
 void registraEscopo(char* escopo){

@@ -347,12 +347,14 @@ arg_lista   : arg_lista VIRG exp {  YYSTYPE temp = $1;
 %%
 
 int yyerror(char * message){
+    char* nt = nome_token(yychar);
     if(yychar == ID || yychar == NUM){
-        fprintf(stdout,"Erro Sintático %s  na linha: %d\n", nome_token(yychar), numlinha);
+        fprintf(stdout,"Erro Sintático %s  na linha: %d\n", nt, numlinha);
     }else{
-        fprintf(stdout,"Erro Sintático %s (%s)  na linha: %d\n", nome_token(yychar), yytext, numlinha);
+        fprintf(stdout,"Erro Sintático %s (%s)  na linha: %d\n", nt, yytext, numlinha);
     }
     Erro = true;
+    free(nt);
     return 0;
 }
 

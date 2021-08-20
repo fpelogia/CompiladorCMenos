@@ -254,4 +254,27 @@ void imprimeTabSim(FILE * listing)
     }
   }
   fprintf(listing," ------------------------------------------------------------\n");
-} /* printSymTab */
+} 
+
+void destroiTabSim()
+{ int i;
+  for (i=0;i<SIZE;++i)
+  { if (Tabela_hash[i] != NULL)
+    { ListaDeBlocos l = Tabela_hash[i];
+      while (l != NULL)
+      { 
+
+        ListaDeBlocos aux_b = l; 
+        ListaDeLinhas t = l->linhas;
+        while (t != NULL)
+        { 
+          ListaDeLinhas aux = t; 
+          t = t->prox;
+          free(t);
+        }
+        l = l->prox;
+        free(aux_b);
+      }
+    }
+  }
+} 

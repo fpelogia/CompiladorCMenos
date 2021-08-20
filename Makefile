@@ -6,7 +6,7 @@ all:
 	mv *yy.c src/
 	gcc -c src/lex.yy.c
 	mv *.o src/
-	gcc src/main.c src/lex.yy.o src/parse.tab.c src/definitions.c src/symtab.c src/analyze.c src/cgen.c -o CompCMenos -lfl -ly
+	gcc -g -Og -std=gnu99 src/main.c src/lex.yy.o src/parse.tab.c src/definitions.c src/symtab.c src/analyze.c src/cgen.c -o CompCMenos -lfl -ly
 	cp CompCMenos src/
 clean:
 	rm CompCMenos
@@ -15,3 +15,5 @@ clean:
 	rm src/*.tab.h
 	rm src/*.yy.c
 	rm src/*.o
+check:
+	valgrind --leak-check=full ./CompCMenos

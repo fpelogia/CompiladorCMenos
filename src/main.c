@@ -50,7 +50,6 @@ int main(int argc, char** argv){
     montaTabSim(arvoreSintatica);
     if(!Erro)
         checaTipos(arvoreSintatica);
-
     
     printf("\n\n============  Código Intermediário ============\n\n");
     inicializaListaQuad(&CodInter);
@@ -89,8 +88,8 @@ int main(int argc, char** argv){
     preencheEnderecosASM_geraBIN(&CodAsm);
     imprimeCodBin();
     
-    //destroiListaQuad(&CodInter); 
-    //destroiListaInstrAsm(&CodAsm); 
+    destroiListaQuad(&CodInter); 
+    destroiListaInstrAsm(&CodAsm); 
 
     fclose(arq_cod_fonte);
     fclose(arq_cod_bin);
