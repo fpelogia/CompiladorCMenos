@@ -177,7 +177,7 @@ typedef enum{
 }TipoAsm;
 
 // Registradores de propósito específico
-enum sprs{$zero = 0, $aux = 27, $rv = 28, $fp = 29, $sp = 30, $ra = 31};
+enum sprs{$zero = 26, $aux = 27, $rv = 28, $fp = 29, $sp = 30, $ra = 31};
 // gprs vão de 1 a 26
 
 typedef struct {

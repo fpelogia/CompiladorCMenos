@@ -199,9 +199,11 @@ void imprimeArvore( NoArvore * arv )
       }
     }
     else if (arv->tipo_de_no==TExp)
-    { switch (arv->tipo.exp) {
-        case E_Op:
-          char* nome_tok = nome_token(arv->atrib.op);
+    { 
+        char* nome_tok;
+        switch (arv->tipo.exp) {
+        case E_Op:  
+          nome_tok = nome_token(arv->atrib.op);
           fprintf(stdout,"Op:%s\n", nome_tok );
           free(nome_tok);
           break;
@@ -1051,14 +1053,17 @@ void preencheEnderecosASM_geraBIN(ListaInstrAsm *lia){
     inicializaListaCodBin(num_instr_asm_geradas);
     NoInstrAsm* lia_p = lia->prim;
 
+    int linha_asm = 0;
     while(lia_p->prox != NULL){
         char c = lia_p->instr->imediato[0];
         if((c >= 'a' && c <= 'z') || c == 'L'){
             int i;
             for (i = 0; i < tam_lista_enderecos; i ++){
+                printf("Procurando %s !\n", lia_p->instr->imediato);
                 if(strcmp(lia_p->instr->imediato, listaEnderecos[i].nome) == 0){
                     char* str_endereco = malloc(10*sizeof(char));
-                    sprintf(str_endereco,"%d",listaEnderecos[i].endereco);
+                    sprintf(str_endereco,"%d",listaEnderecos[i].endereco - linha_asm); // relativo
+                    printf("\t Endereço relativo: %s\n", str_endereco);
                     lia_p->instr->imediato = str_endereco; 
                 }
             }
@@ -1083,6 +1088,7 @@ void preencheEnderecosASM_geraBIN(ListaInstrAsm *lia){
                 break;
         }
         lia_p = lia_p->prox;
+        linha_asm++;
     }
     char c = lia_p->instr->imediato[0];
     if((c >= 'a' && c <= 'z') || c == 'L'){
@@ -1090,16 +1096,16 @@ void preencheEnderecosASM_geraBIN(ListaInstrAsm *lia){
         for (i = 0; i < tam_lista_enderecos; i ++){
             if(strcmp(lia_p->instr->imediato, listaEnderecos[i].nome) == 0){
                 char* str_endereco = malloc(10*sizeof(char));
-                sprintf(str_endereco,"%d",listaEnderecos[i].endereco);
-                lia_p->instr->imediato = str_endereco; 
-            }
+                sprintf(str_endereco,"%d",listaEnderecos[i].endereco - linha_asm); // relativo
+                printf("\t Endereço relativo: %s\n", str_endereco);
+            lia_p->instr->imediato = str_endereco; 
         }
-
     }
-    printf("ASM: %s\n", lia_p->instr->nome);
-    switch(lia_p->instr->tipo){
-        case R:
-            gera_bin_R(lia_p->instr);
+
+}
+switch(lia_p->instr->tipo){
+    case R:
+        gera_bin_R(lia_p->instr);
             break;
         case I:
             gera_bin_I(lia_p->instr);
@@ -1126,6 +1132,10 @@ char* converte_n_bin(int x, int n){
     char str[30] = {'\0'};
     char* inv = calloc(30, sizeof(char));
     int tam = 0;
+    int negativo = (x < 0);
+
+    x = (x >= 0)?x:-x; // x = |x|
+
     while(x >= 2){
         if(x%2 == 0)
             str[tam++] = '0';
@@ -1133,16 +1143,41 @@ char* converte_n_bin(int x, int n){
             str[tam++] = '1';
         x /= 2;
     }
-    if(x == 0)
+    
+    if(x == 0){
         str[tam] = '0';
-    else
+    }else{
         str[tam] = '1';
+    }
+
     int i, extra = n - tam - 1;
     for(i = 0; i < extra; i ++){
         inv[i] = '0';
     }
     for(i = 0; i <= tam; i ++){
         inv[extra + i] = str[tam - i];
+    }
+
+    // lógica do compl. de 2 : se negativo, inverter bits e somar 1
+    if(negativo){
+        for(i = 0; i < strlen(inv); i ++){
+            if(inv[i] == '0'){
+                inv[i] = '1';
+            }else{
+                inv[i] = '0';
+            }
+        }
+        tam = strlen(inv);
+        if(inv[tam] == '0')
+            inv[tam] = '1';
+        else{
+            int temp = tam-1;
+            while(inv[temp] != '0'){
+                inv[temp] = '0';
+                temp--;
+            }
+            inv[temp] = '1';
+        }
     }
     return inv;
 }

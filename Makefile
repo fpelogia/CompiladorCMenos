@@ -6,7 +6,8 @@ all:
 	mv *yy.c src/
 	gcc -c src/lex.yy.c
 	mv *.o src/
-	gcc -g -Og -std=gnu99 src/main.c src/lex.yy.o src/parse.tab.c src/definitions.c src/symtab.c src/analyze.c src/cgen.c -o CompCMenos -lfl -ly
+	# gcc -g -Og -std=gnu99 src/main.c src/lex.yy.o src/parse.tab.c src/definitions.c src/symtab.c src/analyze.c src/cgen.c -o CompCMenos -lfl -ly
+	gcc -g -Og -std=gnu99 src/main.c src/lex.yy.o src/parse.tab.c src/definitions.c src/symtab.c src/analyze.c src/cgen.c -o CompCMenos -lfl 
 	cp CompCMenos src/
 clean:
 	rm CompCMenos
