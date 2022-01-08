@@ -611,8 +611,14 @@ void percorreListaQuad(ListaQuad *lq){
             gera_asm_PARAM(lq_p->quad->c1);
         }
 
+
         lq_p = lq_p->prox;
     }
+
+    if(strcmp(lq_p->quad->op, "HALT") == 0){
+        gera_asm_HALT();
+    }
+
     //printf("\t\t\t(%s,%s,%s,%s)\n",lq_p->quad->op, lq_p->quad->c1, lq_p->quad->c2, lq_p->quad->c3);
     
     int i;
@@ -945,6 +951,12 @@ void gera_asm_PARAM(char* c1){
     push(&pilha_reg_params, c1);// empilha nome do registrador com o valor dentro
 }
 
+void gera_asm_HALT(){
+    printf("%d: HALT\n", num_instr_asm_geradas);
+    TipoAsm tipo = SYS;
+    insereInstrAsm(&CodAsm, tipo, "HALT", 0, 0, 0, "");
+}
+
 void gera_asm_CALL(char* c1, char* c2, char* c3){
     // c1: nome da função
     // c2: número de argumentos
@@ -961,17 +973,11 @@ void gera_asm_CALL(char* c1, char* c2, char* c3){
     if(strcmp(c1, "output") == 0){
         if(atoi(c2) > 0){
             char* par_r = pop(&pilha_reg_params);
-            printf("%d: add $aux, $zero, $%s\n",num_instr_asm_geradas, par_r);
-            TipoAsm tipo = R;
-            insereInstrAsm(&CodAsm, tipo, "add", $aux, $zero, treg_inverso(par_r), "");
-        }
-        printf("%d: jal $ra, output\n",num_instr_asm_geradas);
-        tipo = J;
-        insereInstrAsm(&CodAsm, tipo, "jal", $ra, -1, -1, "output");
-        if(strcmp(c3, " ") != 0){
-            printf("%d: add $%s, $rv, $zero\n",num_instr_asm_geradas, c3);
-            TipoAsm tipo = R;
-            insereInstrAsm(&CodAsm, tipo, "add", treg_inverso(c3), $rv, $zero,  "");
+            printf("%d: OUT $%s\n",num_instr_asm_geradas, par_r);
+            TipoAsm tipo = SYS;
+            insereInstrAsm(&CodAsm, tipo, "OUT", 0 , $zero, treg_inverso(par_r), "");
+        }else{
+            Erro = 1;
         }
         return;
     }
@@ -1086,10 +1092,18 @@ void preencheEnderecosASM_geraBIN(ListaInstrAsm *lia){
                 gera_bin_B(lia_p->instr);
                 // Tipo S gera binário igual o Tipo B
                 break;
+            case SYS:
+                gera_bin_SYS(lia_p->instr);
+                break;
         }
         lia_p = lia_p->prox;
         linha_asm++;
     }
+
+    if (lia_p->instr->tipo == SYS){
+        gera_bin_SYS(lia_p->instr); // HALT
+    }
+
     char c = lia_p->instr->imediato[0];
     if((c >= 'a' && c <= 'z') || c == 'L'){
         int i;
@@ -1294,6 +1308,37 @@ void gera_bin_B(InstrAsm* instr){
     CodBin[tam_cod_bin++] = instr_bin;
 }
 
+void gera_bin_SYS(InstrAsm* instr){
+    char * binstr;
+    char * instr_bin = calloc(34, sizeof(char));
+    // ... rs2 ... rd opcode
+    binstr = converte_n_bin(0, 7);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    binstr = converte_n_bin(instr->rs2, 5);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    binstr = converte_n_bin(0, 5);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    binstr = converte_n_bin(0, 3);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    binstr = converte_n_bin(instr->rd, 5);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    binstr = converte_n_bin(opcode_f3_f7(instr->nome, c_op), 7);
+    strcat(instr_bin, binstr);
+    free(binstr);
+
+    CodBin[tam_cod_bin++] = instr_bin;
+}
+
 void inicializaListaCodBin(int tam){
     CodBin = malloc(tam*sizeof(char*));
 }
@@ -1377,7 +1422,7 @@ int opcode_f3_f7(char* nome, int campo){
                 return 51;
                 break;
             case c_f3:
-                return 1;
+                return 3;
                 break;
             case c_f7:
                 return 0;
@@ -1392,7 +1437,7 @@ int opcode_f3_f7(char* nome, int campo){
                 return 51;
                 break;
             case c_f3:
-                return 1;
+                return 3;
                 break;
             case c_f7:
                 return 32;
@@ -1501,6 +1546,33 @@ int opcode_f3_f7(char* nome, int campo){
                 return 2;
             default:
                 Erro = 1;
+                break;
+        }
+    //======================= Tipo SYS ====================
+    }else if(strcmp(nome, "OUT")==0){
+        switch(campo){
+            case c_op:
+                return 23;
+                break;
+            case c_f3:
+                return 0;
+            case c_f7:
+                return 0;
+            default:
+                Erro = 0;
+                break;
+        }
+    }else if(strcmp(nome, "HALT")==0){
+        switch(campo){
+            case c_op:
+                return 63;
+                break;
+            case c_f3:
+                return 0;
+            case c_f7:
+                return 0;
+            default:
+                Erro = 0;
                 break;
         }
     }

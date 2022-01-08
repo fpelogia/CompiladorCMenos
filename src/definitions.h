@@ -173,7 +173,7 @@ void libera_todos_os_registradores();
 //
 // Tipos de Instrução da arquitetura RVSP (https://github.com/fpelogia/RVSP)
 typedef enum{ 
-    R, I, B, S, J 
+    R, I, B, S, J, SYS 
 }TipoAsm;
 
 // Registradores de propósito específico
@@ -237,6 +237,7 @@ void gera_asm_GOTO(char* c1);
 void gera_asm_END(char* c1);
 void gera_asm_CALL(char* c1, char* c2, char* c3);
 void gera_asm_ALLOC(char* c1, char* c2, char* c3);
+void gera_asm_HALT();
 
 // Tratamento de Endereços (para labels e funções)
 typedef struct{
@@ -264,6 +265,7 @@ void gera_bin_R(InstrAsm* instr);
 void gera_bin_I(InstrAsm* instr);
 void gera_bin_J(InstrAsm* instr);
 void gera_bin_B(InstrAsm* instr);
+void gera_bin_SYS(InstrAsm* instr);
 // tipo S gera binário igual ao tipo B
 
 extern char** CodBin;//código binário

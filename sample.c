@@ -2,10 +2,10 @@ void main(void)
 {
     int i;
     int x;
-    x = 20;
     i = 0;
+    x = 7;
     while(i < x){
-        output(i);
+        output(i + 3);
         i = i + 1;
     }
 }
