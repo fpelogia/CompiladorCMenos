@@ -28,7 +28,7 @@ static void insereNo( NoArvore * t){
                     if(strcmp(t->atrib.nome,"main")==0){
                         possuiMain = true;
                     }
-                    if(strcmp(t->atrib.nome,"input")==0 || strcmp(t->atrib.nome,"output")==0){
+                    if(strcmp(t->atrib.nome,"input")==0 || strcmp(t->atrib.nome,"output")==0 || strcmp(t->atrib.nome,"hd_read")==0 || strcmp(t->atrib.nome,"hd_write")==0){
                         Erro = true;
                         printf("Erro Semântico na linha %d\n\tFunção %s é reservada!\n",t->numlinha,t->atrib.nome);
                     }else{
@@ -90,6 +90,12 @@ static void insereNo( NoArvore * t){
                         t->tipo_c = Integer;
                     }else if(strcmp(t->atrib.nome,"output")==0){
                         //output
+                        t->tipo_c = Integer;
+                    }else if(strcmp(t->atrib.nome,"hd_read")==0){
+                        //hd_read
+                        t->tipo_c = Integer;
+                    }else if(strcmp(t->atrib.nome,"hd_write")==0){
+                        //hd_write
                         t->tipo_c = Integer;
                     }else if (func_ja_declarada(t->atrib.nome) == 0){
                         Erro = 1;

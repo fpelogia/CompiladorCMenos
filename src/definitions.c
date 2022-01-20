@@ -666,8 +666,12 @@ void gera_asm_END(char* c1){
 
         printf("%d: addi $sp, $fp, -1\n",num_instr_asm_geradas);
         insereInstrAsm(&CodAsm, tipo, "addi", $sp, $fp, -1, "-1");
-        printf("%d: jalr $aux, $ra(0)\n",num_instr_asm_geradas);//pula de volta para a função que chamou
-        insereInstrAsm(&CodAsm, tipo, "jalr", $aux, $ra, -1, "0");
+        tipo = R;
+        printf("%d: jr $ra\n",num_instr_asm_geradas);//pula de volta para a função que chamou
+        insereInstrAsm(&CodAsm, tipo, "jr", 0, 0,$ra,"0");
+        printf("%d: NOOP\n",num_instr_asm_geradas);
+        tipo = SYS;
+        insereInstrAsm(&CodAsm, tipo, "NOOP", 0, 0, 0, "");
     }
     tam_lista_escopos--; // [PERIGOSO]
     n_reg_temp_usado = 0;
@@ -687,6 +691,9 @@ void gera_asm_GOTO(char* c1){
     printf("%d: jal $aux %s\n",num_instr_asm_geradas, c1);
     TipoAsm tipo = J;
     insereInstrAsm(&CodAsm, tipo, "jal", $aux, -1, -1, c1);
+    printf("%d: NOOP\n",num_instr_asm_geradas);
+    tipo = SYS;
+    insereInstrAsm(&CodAsm, tipo, "NOOP", 0, 0, 0, "");
 }
 
 void gera_asm_IFF(char* c1, char* c2){
@@ -695,6 +702,9 @@ void gera_asm_IFF(char* c1, char* c2){
     printf("%d: beq $%s, $zero, %s\n",num_instr_asm_geradas, c1, c2);
     TipoAsm tipo = B;
     insereInstrAsm(&CodAsm, tipo, "beq", -1, treg_inverso(c1), $zero, c2);
+    printf("%d: NOOP\n",num_instr_asm_geradas);
+    tipo = SYS;
+    insereInstrAsm(&CodAsm, tipo, "NOOP", 0, 0, 0, "");
 }
 
 void gera_asm_STORE(char* c1, char* c2, char* c3){
@@ -965,13 +975,58 @@ void gera_asm_CALL(char* c1, char* c2, char* c3){
     TipoAsm tipo;
 
     if(strcmp(c1, "input") == 0){
-        printf("%d: jal $ra, input\n",num_instr_asm_geradas);
-        tipo = J;
-        insereInstrAsm(&CodAsm, tipo, "jal", $ra, -1, -1, "input");
+        if(strcmp(c3," ")!=0){ // armazenar entrada no reg c3
+            // Interrupção de E/S
+            printf("%d: WAIT \n",num_instr_asm_geradas);
+            TipoAsm tipo = SYS;
+            insereInstrAsm(&CodAsm, tipo, "WAIT", 0, 0, 0, "");
+
+            printf("%d: IN $%s\n",num_instr_asm_geradas, c3);
+            insereInstrAsm(&CodAsm, tipo, "IN", treg_inverso(c3) , 0, 0, "");
+        }else{
+            Erro = 1;
+        }
         return;
     }
     if(strcmp(c1, "output") == 0){
         if(atoi(c2) > 0){
+            char* par_r = pop(&pilha_reg_params);
+            printf("%d: OUT $%s\n",num_instr_asm_geradas, par_r);
+            TipoAsm tipo = SYS;
+            insereInstrAsm(&CodAsm, tipo, "OUT", 0 , $zero, treg_inverso(par_r), "");
+        }else{
+            Erro = 1;
+        }
+        return;
+    }
+    // HD_Read
+    if(strcmp(c1, "hd_read") == 0){
+        if(strcmp(c3," ")!=0){ // armazenar entrada no reg c3
+            // Interrupção de E/S
+            printf("%d: WAIT \n",num_instr_asm_geradas);
+            TipoAsm tipo = SYS;
+            insereInstrAsm(&CodAsm, tipo, "WAIT", 0, 0, 0, "");
+
+            printf("%d: IN $%s\n",num_instr_asm_geradas, c3);
+            insereInstrAsm(&CodAsm, tipo, "IN", treg_inverso(c3) , 0, 0, "");
+        }else{
+            Erro = 1;
+        }
+        return;
+    }
+    // HD_Write
+    if(strcmp(c1, "hd_write") == 0){
+        tipo = SYS;
+        char* reg_param;
+        int num_parametros = atoi(c2);
+        if(num_parametros != 3){
+            printf("A função hd_write deve receber três argumentos\n");
+            Erro = 1;
+        }
+        for (i = 0; i < num_parametros; i++){
+            reg_param = pop(&pilha_reg_params);
+        }
+        if(num_parametros > 0){
             char* par_r = pop(&pilha_reg_params);
             printf("%d: OUT $%s\n",num_instr_asm_geradas, par_r);
             TipoAsm tipo = SYS;
@@ -1475,24 +1530,28 @@ int opcode_f3_f7(char* nome, int campo){
             default:
                 Erro = 1;
                 break;
+                
+        }
+    }else if(strcmp(nome, "jr")==0){
+        switch(campo){
+            case c_op:
+                return 51;
+                break;
+            case c_f3:
+                return 7;
+                break;
+            case c_f7:
+                return 32;
+                break;
+            default:
+                Erro = 1;
+                break;
         }
     //======================= Tipo I ====================
     }else if(strcmp(nome, "addi")==0){
         switch(campo){
             case c_op:
                 return 19;
-                break;
-            case c_f3:
-                return 0;
-                break;
-            default:
-                Erro = 1;
-                break;
-        }
-    }else if(strcmp(nome, "jalr")==0){
-        switch(campo){
-            case c_op:
-                return 103;
                 break;
             case c_f3:
                 return 0;
@@ -1553,6 +1612,59 @@ int opcode_f3_f7(char* nome, int campo){
         switch(campo){
             case c_op:
                 return 23;
+                break;
+            case c_f3:
+                return 0;
+            case c_f7:
+                return 0;
+            default:
+                Erro = 0;
+                break;
+        }
+    }else if(strcmp(nome, "IN")==0){
+        switch(campo){
+            case c_op:
+                return 55;
+                break;
+            case c_f3:
+                return 0;
+            case c_f7:
+                return 0;
+            default:
+                Erro = 0;
+                break;
+        }
+    }else if(strcmp(nome, "WAIT")==0){
+        switch(campo){
+            case c_op:
+                return 60;
+                break;
+            case c_f3:
+                return 0;
+            case c_f7:
+                return 0;
+            default:
+                Erro = 0;
+                break;
+                
+        }
+    }else if(strcmp(nome, "REG_TO_HD")==0){
+        switch(campo){
+            case c_op:
+                return 61;
+                break;
+            case c_f3:
+                return 0;
+            case c_f7:
+                return 0;
+            default:
+                Erro = 0;
+                break;
+        }
+    }else if(strcmp(nome, "HD_TO_REG")==0){
+        switch(campo){
+            case c_op:
+                return 62;
                 break;
             case c_f3:
                 return 0;
