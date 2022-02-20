@@ -1019,6 +1019,7 @@ void gera_asm_CALL(char* c1, char* c2, char* c3){
         tipo = SYS;
         char* reg_param;
         int num_parametros = atoi(c2);
+        int i;
         if(num_parametros != 3){
             printf("A função hd_write deve receber três argumentos\n");
             Erro = 1;
